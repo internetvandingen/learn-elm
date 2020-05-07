@@ -39,8 +39,11 @@ In het uiteindelijke resultaat moet sowieso het volgende aanwezig zijn:
 ### Planning
 week 1:
 - simpele applicatie in elm bouwen om elm te leren kennen
-- proberen middleware in te bouwen in de root voor proof of concept
-	werkt dat niet dan opnieuw beginnen met andere functionele taal
+- proberen middleware in te bouwen in de root voor proof of concept, werkt dat niet, dan opnieuw beginnen met andere functionele taal
+    - pagina in module zetten zodat hij op meerdere plekken gebruikt kan worden
+    - nodejs server opzetten om requests op te vangen en te printen
+    - middleware maken die state naar server stuurt bij elke update
+    - volger pagina maken
 
 week 2:
 - Ultimate tic tac toe requirements opstellen, zie trello
