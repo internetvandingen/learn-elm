@@ -1,16 +1,9 @@
 module Main exposing (..)
 
--- Press buttons to increment and decrement a counter.
---
--- Read how it works:
---   https://guide.elm-lang.org/architecture/buttons.html
---
-
-
 import Browser
-import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
-
+import Html exposing (Html, button, div, input, text, select, option, label)
+import Html.Events exposing (onClick, onInput, onCheck)
+import Html.Attributes exposing (placeholder, value, type_)
 
 
 -- MAIN
@@ -23,13 +16,16 @@ main =
 
 -- MODEL
 
-
-type alias Model = Int
+type alias Model =
+  { count : Int
+  , textField : String
+  , checked : Bool
+  }
 
 
 init : Model
 init =
-  0
+  Model 0 "" False
 
 
 
@@ -39,16 +35,43 @@ init =
 type Msg
   = Increment
   | Decrement
+  | Change String
+  | Toggle Bool
 
+
+boolToString : Bool -> String
+boolToString checked =
+  if checked then
+    "Checked"
+  else
+    "Unchecked"
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
     Increment ->
-      model + 1
+      { count = model.count + 1
+      , textField = model.textField
+      , checked = model.checked
+      }
 
     Decrement ->
-      model - 1
+      { count = model.count - 1
+      , textField = model.textField
+      , checked = model.checked
+      }
+
+    Change text ->
+      { count = model.count + String.length text - String.length model.textField
+      , textField = text
+      , checked = model.checked
+      }
+
+    Toggle checked ->
+      { count = model.count
+      , textField = model.textField
+      , checked = not model.checked
+      }
 
 
 
@@ -58,7 +81,21 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ button [ onClick Decrement ] [ text "-" ]
-    , div [] [ text (String.fromInt model) ]
-    , button [ onClick Increment ] [ text "+" ]
+    [
+    div []
+      [ button [ onClick Decrement ] [ text "-" ]
+      , div [] [ text (String.fromInt model.count) ]
+      , button [ onClick Increment ] [ text "+" ]
+      ]
+    , input [ placeholder "Text", value model.textField, onInput Change ] [ ]
+    , select [ onInput Change ]
+      [ option [ value "One" ] [ text "1"]
+      , option [ value "Two" ] [ text "2"]
+      , option [ value "Three" ] [ text "3"]
+      ]
+    , label []
+      [ text "Example checkbox"
+      , input [ type_ "checkbox", onCheck Toggle ] [ ]
+      ]
+    , div [] [ text (String.fromInt model.count ++ " " ++ model.textField ++ " " ++ boolToString model.checked) ]
     ]
