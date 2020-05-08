@@ -1,5 +1,5 @@
-# Spieker
-Meekijk functionaliteit in elm taal
+# Ultimate Tic Tac Toe (UTTT)
+Recursieve versie van boter kaas en eieren
 
 ## Voorstel
 ### Randvoorwaarden
@@ -18,25 +18,30 @@ Randvoorwaarden aan projectonderwerp:
 Overzicht van belangrijkste features die het product moet hebben met motivatie over waarom deze en niet andere.
 
 ### Onderwerp
-Het onderwerp dat centraal staat is meekijkfunctionaliteit voor een website.
-Hierbij doen we de volgende aannames:
-- wordt in webapplicatie opgelost, niet via andere infrastructuur (screencapture)
-- hoeft niet compatible te zijn met bestaande applicaties
-
 ### Technisch leerdoel
 - leren functioneel programmeren met behulp van elm
+
 
 ### Persoonlijk leerdoel
 - planning: georganiseerd aan de slag gaan: problemen opdelen, requirements opstellen en uitwerken
 
 ## Uitwerking
 ### Functionaliteit
-In het uiteindelijke resultaat moet sowieso het volgende aanwezig zijn:
-- voorbeeldpagina met formulieren en andere input elementen die gemanipuleerd kunnen worden door gebruiker
-- user input of updates afvangen en doorsturen
-- afgevangen data weergeven op een alleen-lezen pagina om mee te kijken
+In het uiteindelijke resultaat moet sowieso het volgende aanwezig zijn: (in implementatie volgorde)
+- bestaande versie van boter kaas en eieren koppelen zodat je via nodejs server kan spelen
+- UTTT in front-end implementeren
+- UTTT compatible maken met nodejs backend
+- statistieken pagina om te zien welke games er allemaal gespeelt zijn
+- meekijkfunctionaliteit (voor mensen die een spel openen die al bezet is)
 
-### Planning
+Mocht er tijd over zijn dan:
+- een UTTT AI om tegen te spelen (front-end)
+- statistieken over games tegen AI
+- Tutorial hoe te spelen
+
+
+
+## Planning
 week 1:
 - simpele applicatie in elm bouwen om elm te leren kennen
 - proberen middleware in te bouwen in de root voor proof of concept, werkt dat niet, dan opnieuw beginnen met andere functionele taal
@@ -48,10 +53,8 @@ week 1:
 week 2:
 - Ultimate tic tac toe requirements opstellen, zie trello
 - ci opzetten
-- beginnen met bouwen
 
-week 3:
-- bouwen
+Voor verdere planning, zie trello
 
 
 ### Vragen
@@ -59,8 +62,6 @@ week 3:
 	Main stream platformem : Vue + Vuex. React met Redux. 
 	Obscuurdere platformen: purescript, ocaml->reasonml (, cyclejs)
 - wat zijn restricties van elm? -> nieuwe functionaliteiten kunnen beperkt gebouwd worden
-
-
 
 
 # Referenties
