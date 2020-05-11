@@ -67,10 +67,15 @@ Voor verdere planning, zie trello
 # Documentation
 
 ## Install
-`elm make src/Main.elm --output=elm.js`
+`npm install`
+`npm run build`
+
+## Run
+`npm run start`
 open `index.html` in browser
 
 
 
-# Referenties
+# Dependencies
 - [elm](elm-lang.org)
+- node

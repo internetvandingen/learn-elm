@@ -1,0 +1,21 @@
+{
+  "name": "uttt",
+  "version": "1.0.0",
+  "description": "Ultimate tic-tac-toe server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -f elm.js",
+    "build": "elm make src/Main.elm --output=elm.js",
+    "run": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.sogyo.nl:academy/mastercourses/projects/individual-projects/lennart.git"
+  },
+  "author": "lknoll",
+  "license": "ISC",
+  "dependencies": {
+    "websocket": "^1.0.31"
+  }
+}
