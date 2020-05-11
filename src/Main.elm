@@ -1,31 +1,50 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, input, text, select, option, label)
-import Html.Events exposing (onClick, onInput, onCheck)
-import Html.Attributes exposing (placeholder, value, type_)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Json.Decode as D
+
 
 
 -- MAIN
 
 
+main : Program () Model Msg
 main =
-  Browser.sandbox { init = init, update = update, view = view }
+  Browser.element
+    { init = init
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    }
+
+
+
+
+-- PORTS
+
+
+port sendMessage : String -> Cmd msg
+port messageReceiver : (String -> msg) -> Sub msg
 
 
 
 -- MODEL
 
+
 type alias Model =
-  { count : Int
-  , textField : String
-  , checked : Bool
+  { draft : String
+  , messages : List String
   }
 
 
-init : Model
-init =
-  Model 0 "" False
+init : () -> ( Model, Cmd Msg )
+init flags =
+  ( { draft = "", messages = [] }
+  , Cmd.none
+  )
 
 
 
@@ -33,45 +52,45 @@ init =
 
 
 type Msg
-  = Increment
-  | Decrement
-  | Change String
-  | Toggle Bool
+  = DraftChanged String
+  | Send
+  | Recv String
 
 
-boolToString : Bool -> String
-boolToString checked =
-  if checked then
-    "Checked"
-  else
-    "Unchecked"
-
-update : Msg -> Model -> Model
+-- Use the `sendMessage` port when someone presses ENTER or clicks
+-- the "Send" button. Check out index.html to see the corresponding
+-- JS where this is piped into a WebSocket.
+--
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Increment ->
-      { count = model.count + 1
-      , textField = model.textField
-      , checked = model.checked
-      }
+    DraftChanged draft ->
+      ( { model | draft = draft }
+      , Cmd.none
+      )
 
-    Decrement ->
-      { count = model.count - 1
-      , textField = model.textField
-      , checked = model.checked
-      }
+    Send ->
+      ( { model | draft = "" }
+      , sendMessage model.draft
+      )
 
-    Change text ->
-      { count = model.count + String.length text - String.length model.textField
-      , textField = text
-      , checked = model.checked
-      }
+    Recv message ->
+      ( { model | messages = model.messages ++ [message] }
+      , Cmd.none
+      )
 
-    Toggle checked ->
-      { count = model.count
-      , textField = model.textField
-      , checked = not model.checked
-      }
+
+
+-- SUBSCRIPTIONS
+
+
+-- Subscribe to the `messageReceiver` port to hear about messages coming in
+-- from JS. Check out the index.html file to see how this is hooked up to a
+-- WebSocket.
+--
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+  messageReceiver Recv
 
 
 
@@ -81,21 +100,26 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [
-    div []
-      [ button [ onClick Decrement ] [ text "-" ]
-      , div [] [ text (String.fromInt model.count) ]
-      , button [ onClick Increment ] [ text "+" ]
-      ]
-    , input [ placeholder "Text", value model.textField, onInput Change ] [ ]
-    , select [ onInput Change ]
-      [ option [ value "One" ] [ text "1"]
-      , option [ value "Two" ] [ text "2"]
-      , option [ value "Three" ] [ text "3"]
-      ]
-    , label []
-      [ text "Example checkbox"
-      , input [ type_ "checkbox", onCheck Toggle ] [ ]
-      ]
-    , div [] [ text (String.fromInt model.count ++ " " ++ model.textField ++ " " ++ boolToString model.checked) ]
+    [ h1 [] [ text "Echo Chat" ]
+    , ul []
+        (List.map (\msg -> li [] [ text msg ]) model.messages)
+    , input
+        [ type_ "text"
+        , placeholder "Draft"
+        , onInput DraftChanged
+        , on "keydown" (ifIsEnter Send)
+        , value model.draft
+        ]
+        []
+    , button [ onClick Send ] [ text "Send" ]
     ]
+
+
+
+-- DETECT ENTER
+
+
+ifIsEnter : msg -> D.Decoder msg
+ifIsEnter msg =
+  D.field "key" D.string
+    |> D.andThen (\key -> if key == "Enter" then D.succeed msg else D.fail "some other key")

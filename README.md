@@ -64,5 +64,13 @@ Voor verdere planning, zie trello
 - wat zijn restricties van elm? -> nieuwe functionaliteiten kunnen beperkt gebouwd worden
 
 
+# Documentation
+
+## Install
+`elm make src/Main.elm --output=elm.js`
+open `index.html` in browser
+
+
+
 # Referenties
 - [elm](elm-lang.org)
