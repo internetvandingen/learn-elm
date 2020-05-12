@@ -1,13 +1,56 @@
 #!/usr/bin/env node
-var WebSocketServer = require('websocket').server;
-var http = require('http');
+let WebSocketServer = require('websocket').server;
+let http = require('http');
+let fs = require('fs');
+let path = require('path');
 
-var server = http.createServer(function(request, response) {
+let server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
-    response.writeHead(404);
-    response.end();
+    let filePath = './client' + request.url;
+    if (request.url == '/')
+        filePath += '/index.html';
+
+    let extname = path.extname(filePath);
+    let contentType = 'text/html';
+    switch (extname) {
+        case '.js':
+            contentType = 'text/javascript';
+            break;
+        case '.css':
+            contentType = 'text/css';
+            break;
+        case '.json':
+            contentType = 'application/json';
+            break;
+        case '.png':
+            contentType = 'image/png';
+            break;
+        case '.jpg':
+            contentType = 'image/jpg';
+            break;
+    }
+
+    fs.readFile(filePath, function(error, content) {
+        if (error) {
+            if(error.code == 'ENOENT'){
+                response.writeHead(404);
+                response.end('Error: 404 - Could not find anything here...');
+            }
+            else {
+                response.writeHead(500);
+                response.end('Something went wrong...');
+                response.end();
+            }
+        }
+        else {
+            response.writeHead(200, { 'Content-Type': contentType });
+            response.end(content, 'utf-8');
+        }
+    });
 });
-server.listen(8080, function() {
+
+
+server.listen(80, function() {
     console.log((new Date()) + ' Server is listening on port 8080');
 });
 
@@ -34,7 +77,7 @@ wsServer.on('request', function(request) {
         return;
     }
 
-    var connection = request.accept('echo-protocol', request.origin);
+    let connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
