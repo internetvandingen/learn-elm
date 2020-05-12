@@ -24,11 +24,16 @@ port messageReceiver : (String -> msg) -> Sub msg
 type alias Model =
   { draft : String
   , messages : List String
+  , gamestate : Gamestate
   }
 
 init : () -> ( Model, Cmd Msg )
 init flags =
-  ( { draft = "", messages = [] }
+  (
+    { draft = ""
+    , messages = []
+    , gamestate = initGamestate
+    }
   , Cmd.none
   )
 
@@ -65,6 +70,12 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
   messageReceiver Recv
 
+-- DETECT ENTER
+ifIsEnter : msg -> D.Decoder msg
+ifIsEnter msg =
+  D.field "key" D.string
+    |> D.andThen (\key -> if key == "Enter" then D.succeed msg else D.fail "some other key")
+
 
 -- VIEW
 view : Model -> Html.Html Msg
@@ -92,10 +103,53 @@ viewChat model =
     ]
 
 viewGame : Model -> Html.Html Msg
-viewGame model = Html.text "test"
+viewGame model
+  = Html.table [] (List.map viewRow model.gamestate.squares)
 
--- DETECT ENTER
-ifIsEnter : msg -> D.Decoder msg
-ifIsEnter msg =
-  D.field "key" D.string
-    |> D.andThen (\key -> if key == "Enter" then D.succeed msg else D.fail "some other key")
+
+viewRow : Row -> Html.Html Msg
+viewRow row
+  = Html.tr [ Events.onClick <| Recv <| String.fromInt 0 ] (List.map viewSquare row)
+
+viewSquare : Square -> Html.Html Msg
+viewSquare square
+  = Html.td [ Attr.style "border" "1px solid black" ] [ Html.text <| (String.fromInt <| Tuple.first square.pos) ++ ", " ++ (String.fromInt <| Tuple.second square.pos) ]
+
+-- Game
+initGamestate : Gamestate
+initGamestate =
+  { turn = 1
+  , squares = initBoard
+  }
+
+initBoard : Board
+initBoard = List.map initRow (List.range 0 2)
+
+initRow : Int -> List Square
+initRow rowNr = List.map initSquare (pairs (List.repeat 3 rowNr) (List.range 0 2))
+
+initSquare : Pos -> Square
+initSquare pos =
+  { mark = 0
+  , pos = ( Tuple.first pos, Tuple.second pos )
+  }
+
+type alias Gamestate =
+  { turn : Int
+  , squares : Board
+  }
+
+type alias Board = List Row
+
+type alias Row = List Square
+
+type alias Square =
+  { mark : Int
+  , pos : Pos
+  }
+
+type alias Pos = (Int, Int)
+
+pairs : List a -> List b -> List (a,b)
+pairs xs ys =
+  List.map2 Tuple.pair xs ys
