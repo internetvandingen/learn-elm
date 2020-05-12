@@ -4,6 +4,11 @@ let http = require('http');
 let fs = require('fs');
 let path = require('path');
 
+var Elm = require('./uttt.js');
+let elmApp = Elm.Elm.Uttt.init();
+elmApp.ports.sendMessage.subscribe(function(message) {console.log("elm sub: "+message);});
+
+
 let server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     let filePath = './client' + request.url;
@@ -81,8 +86,8 @@ wsServer.on('request', function(request) {
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
-        console.log('Received Message: ' + message.utf8Data);
-        connection.sendUTF(message.utf8Data);
+            elmApp.ports.messageReceiver.send(message.utf8Data);
+            connection.sendUTF(message.utf8Data);
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');

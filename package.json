@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "clean": "rm -f client/elm.js",
-    "build": "elm make src/Main.elm --output=client/elm.js",
+    "clean": "rm -f client/elm.js && rm -f uttt.js",
+    "build": "elm make src/Main.elm --output=client/elm.js && elm make src/Uttt.elm --output=uttt.js",
     "run": "node server.js"
   },
   "repository": {

@@ -74,8 +74,29 @@ Voor verdere planning, zie trello
 `npm run start`
 open `index.html` in browser
 
+## Protocol
+As clients should not be able to alter the gamestate outside the rules, it should be managed by the server.
+It is impossible to store the state in elm, because it is a functional language.
+Therefore, consider the node server a middleman that stores the gamestate and handles the socket: `Client <--> Node server <--> Backend`
+Everytime a message from the client comes in, the current gamestate stored in nodejs is combined with the client request and passed to the backend.
+
+Client --> Backend
+- Place mark
+- Resign
+
+Backend --> Client
+- Update gamestate
+- Illegal action
+
+Gamestate information:
+- board: whether marks are placed on each square
+- who's turn it is
+- winner: whether the game is won by somebody or is ongoing
+
+Note that both the client and the backend are written in elm, so the code for the game is reused.
 
 
-# Dependencies
+
+## Dependencies
 - [elm](elm-lang.org)
 - node
