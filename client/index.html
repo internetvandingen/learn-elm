@@ -24,7 +24,10 @@ var socket = new WebSocket('ws://localhost', 'echo-protocol');
 // When a command goes to the `sendMessage` port, we pass the message
 // along to the WebSocket.
 app.ports.sendMessage.subscribe(function(message) {
-    socket.send(message);
+	// @todo: remove
+	// temporarely just return the message as a chat string for development
+    // socket.send(message);
+    app.ports.messageReceiver.send(message);
 });
 
 // When a message comes into our WebSocket, we pass the message along

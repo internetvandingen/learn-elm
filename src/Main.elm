@@ -5,6 +5,7 @@ import Html
 import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Decode as D
+import Json.Encode as E
 
 -- MAIN
 main : Program () Model Msg
@@ -40,7 +41,7 @@ init flags =
 -- UPDATE
 type Msg
   = DraftChanged String
-  | Send
+  | Send String
   | Recv String
 
 -- Use the `sendMessage` port when someone presses ENTER or clicks
@@ -55,9 +56,9 @@ update msg model =
       , Cmd.none
       )
 
-    Send ->
+    Send message ->
       ( { model | draft = "" }
-      , sendMessage model.draft
+      , sendMessage message
       )
 
     Recv message ->
@@ -95,11 +96,11 @@ viewChat model =
         [ Attr.type_ "text"
         , Attr.placeholder "Draft"
         , Events.onInput DraftChanged
-        , Events.on "keydown" (ifIsEnter Send)
+        , Events.on "keydown" (ifIsEnter <| Send model.draft)
         , Attr.value model.draft
         ]
         []
-    , Html.button [ Events.onClick Send ] [ Html.text "Send" ]
+    , Html.button [ Events.onClick <| Send model.draft ] [ Html.text "Send" ]
     ]
 
 viewGame : Model -> Html.Html Msg
@@ -109,11 +110,14 @@ viewGame model
 
 viewRow : Row -> Html.Html Msg
 viewRow row
-  = Html.tr [ Events.onClick <| Recv <| String.fromInt 0 ] (List.map viewSquare row)
+  = Html.tr [] (List.map viewSquare row)
 
 viewSquare : Square -> Html.Html Msg
-viewSquare square
-  = Html.td [ Attr.style "border" "1px solid black" ] [ Html.text <| (String.fromInt <| Tuple.first square.pos) ++ ", " ++ (String.fromInt <| Tuple.second square.pos) ]
+viewSquare square =
+  let
+    customStyle = Attr.style "border" "1px solid black"
+  in
+    Html.td [ customStyle, Events.onClick <| Send <| encodePos square.pos ] [ Html.text <| String.fromInt square.mark ]
 
 -- Game
 initGamestate : Gamestate
@@ -149,6 +153,9 @@ type alias Square =
   }
 
 type alias Pos = (Int, Int)
+
+encodePos : Pos -> String
+encodePos pos = E.encode 0 (E.list E.int [Tuple.first pos, Tuple.second pos])
 
 pairs : List a -> List b -> List (a,b)
 pairs xs ys =
