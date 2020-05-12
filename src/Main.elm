@@ -1,16 +1,12 @@
 port module Main exposing (..)
 
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
+import Html
+import Html.Attributes as Attr
+import Html.Events as Events
 import Json.Decode as D
 
-
-
 -- MAIN
-
-
 main : Program () Model Msg
 main =
   Browser.element
@@ -20,25 +16,15 @@ main =
     , subscriptions = subscriptions
     }
 
-
-
-
 -- PORTS
-
-
 port sendMessage : String -> Cmd msg
 port messageReceiver : (String -> msg) -> Sub msg
 
-
-
 -- MODEL
-
-
 type alias Model =
   { draft : String
   , messages : List String
   }
-
 
 init : () -> ( Model, Cmd Msg )
 init flags =
@@ -46,16 +32,11 @@ init flags =
   , Cmd.none
   )
 
-
-
 -- UPDATE
-
-
 type Msg
   = DraftChanged String
   | Send
   | Recv String
-
 
 -- Use the `sendMessage` port when someone presses ENTER or clicks
 -- the "Send" button. Check out index.html to see the corresponding
@@ -79,46 +60,41 @@ update msg model =
       , Cmd.none
       )
 
-
-
 -- SUBSCRIPTIONS
-
-
--- Subscribe to the `messageReceiver` port to hear about messages coming in
--- from JS. Check out the index.html file to see how this is hooked up to a
--- WebSocket.
---
 subscriptions : Model -> Sub Msg
 subscriptions _ =
   messageReceiver Recv
 
 
-
 -- VIEW
-
-
-view : Model -> Html Msg
+view : Model -> Html.Html Msg
 view model =
-  div []
-    [ h1 [] [ text "Echo Chat" ]
-    , ul []
-        (List.map (\msg -> li [] [ text msg ]) model.messages)
-    , input
-        [ type_ "text"
-        , placeholder "Draft"
-        , onInput DraftChanged
-        , on "keydown" (ifIsEnter Send)
-        , value model.draft
-        ]
-        []
-    , button [ onClick Send ] [ text "Send" ]
+  Html.div []
+    [ viewGame model
+    , viewChat model
     ]
 
+viewChat : Model -> Html.Html Msg
+viewChat model =
+  Html.div []
+    [ Html.h2 [] [ Html.text "Echo Chat" ]
+    , Html.ul []
+        (List.map (\msg -> Html.li [] [ Html.text msg ]) model.messages)
+    , Html.input
+        [ Attr.type_ "text"
+        , Attr.placeholder "Draft"
+        , Events.onInput DraftChanged
+        , Events.on "keydown" (ifIsEnter Send)
+        , Attr.value model.draft
+        ]
+        []
+    , Html.button [ Events.onClick Send ] [ Html.text "Send" ]
+    ]
 
+viewGame : Model -> Html.Html Msg
+viewGame model = Html.text "test"
 
 -- DETECT ENTER
-
-
 ifIsEnter : msg -> D.Decoder msg
 ifIsEnter msg =
   D.field "key" D.string
