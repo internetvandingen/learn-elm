@@ -20,8 +20,29 @@ type alias Gamestate =
   , squares : Board
   }
 
-encodePos : Pos -> String
-encodePos pos = E.encode 0 (E.list E.int [Tuple.first pos, Tuple.second pos])
+encodePlaceMark : Pos -> String
+encodePlaceMark pos =
+    let
+        encodedPos = E.object
+            [ ("type", E.string "PlaceMark")
+            , ("message", encodePos pos)
+            ]
+    in
+        E.encode 0 encodedPos
+
+encodePos : Pos -> E.Value
+encodePos pos = E.list E.int [Tuple.first pos, Tuple.second pos]
+
+encodeSendChatMessage : String -> String
+encodeSendChatMessage message =
+    let
+        encodedMessage = E.object
+            [ ("type", E.string "ChatMessage")
+            , ("message", E.string message)
+            ]
+    in
+        E.encode 0 encodedMessage
+
 
 pairs : List a -> List b -> List (a,b)
 pairs xs ys =

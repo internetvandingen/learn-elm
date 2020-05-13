@@ -81,12 +81,13 @@ Therefore, consider the node server a middleman that stores the gamestate and ha
 Everytime a message from the client comes in, the current gamestate stored in nodejs is combined with the client request and passed to the backend.
 
 Client --> Backend
-- Place mark
-- Resign
+- Place mark : {'type': 'PlaceMark', 'message': Ttt.Pos}
+- Send chat message : {'type': 'ChatMessage', 'message': String}
 
 Backend --> Client
-- Update gamestate
-- Illegal action
+- Update gamestate : {'type': 'UpdateGamestate', 'message': Ttt.Gamestate}
+- Illegal action : {'type': 'IllegalAction', 'message': String}
+- Receive chat message : {'type': 'ChatMessage', 'message': String}
 
 Gamestate information:
 - board: whether marks are placed on each square

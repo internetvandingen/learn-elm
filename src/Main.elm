@@ -98,11 +98,11 @@ viewChat model =
         [ Attr.type_ "text"
         , Attr.placeholder "Draft"
         , Events.onInput DraftChanged
-        , Events.on "keydown" (ifIsEnter <| Send model.draft)
+        , Events.on "keydown" (ifIsEnter <| Send <| Ttt.encodeSendChatMessage model.draft)
         , Attr.value model.draft
         ]
         []
-    , Html.button [ Events.onClick <| Send model.draft ] [ Html.text "Send" ]
+    , Html.button [ Events.onClick <| Send <| Ttt.encodeSendChatMessage model.draft ] [ Html.text "Send" ]
     ]
 
 viewGame : Model -> Html.Html Msg
@@ -119,4 +119,4 @@ viewSquare square =
   let
     customStyle = Attr.style "border" "1px solid black"
   in
-    Html.td [ customStyle, Events.onClick <| Send <| Ttt.encodePos square.pos ] [ Html.text <| String.fromInt square.mark ]
+    Html.td [ customStyle, Events.onClick <| Send <| Ttt.encodePlaceMark square.pos ] [ Html.text <| String.fromInt square.mark ]
