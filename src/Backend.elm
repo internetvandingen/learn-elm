@@ -1,5 +1,7 @@
 port module Backend exposing (..)
 
+import Json.Decode as D
+
 import Ttt
 
 main : Program () Model Msg
@@ -24,11 +26,40 @@ init _ = ( Ttt.initGamestate, Cmd.none )
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        IncomingMessage string -> (
+        IncomingMessage json -> (
             let
-                newModel = model
+                parsedMessage = parseMessage json
             in
-                ( newModel, sendMessage <| Ttt.stringifyGamestate newModel ))
+                case parsedMessage of
+                    ChatMessage message -> ( model, sendMessage <| Ttt.stringifyChatMessage message )
+                    --@todo: return updated model after mark is placed
+                    PlaceMark position -> ( model, sendMessage <| Ttt.stringifyChatMessage <| "successfull mark placement" )
+                    -- @todo: don't send a chat message on error, but servermessage
+                    Unknown error -> ( model, sendMessage <| Ttt.stringifyChatMessage error )
+            )
+
+parseMessage : String -> Protocol
+parseMessage json =
+    case D.decodeString (D.field "type" D.string) json of
+        Ok  value ->
+            if value == "ChatMessage" then
+                case D.decodeString (D.field "message" D.string) json of
+                    Ok content -> ChatMessage content
+                    Err error -> Unknown "Error while parsing content of chat message"
+            else if value == "PlaceMark" then
+                case D.decodeString (D.field "message" Ttt.decodePos) json of
+                    Ok content -> PlaceMark content
+                    Err error -> Unknown "Error while parsing position of PlaceMark"
+            else
+                Unknown "Unknown type of message"
+        Err error -> Unknown "Could not find a type"
+
+
+type Protocol
+    = ChatMessage String
+    | PlaceMark Ttt.Pos
+    | Unknown String
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =

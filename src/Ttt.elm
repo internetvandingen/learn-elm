@@ -1,8 +1,10 @@
 module Ttt exposing (..)
 
 import Json.Encode as E
+import Json.Decode as D
 
 
+------------------------------------------------------------------ TYPES
 
 type alias Pos = (Int, Int)
 
@@ -20,6 +22,10 @@ type alias Gamestate =
   , board : Board
   }
 
+decodePos : D.Decoder Pos
+decodePos = D.map2 (Tuple.pair) (D.index 0 D.int) (D.index 1 D.int)
+
+------------------------------------------------------------------ ENCODERS
 encodePlaceMark : Pos -> String
 encodePlaceMark pos =
     let
@@ -69,6 +75,8 @@ encodeSendMessage msgType message =
             ]
     in
         E.encode 0 encodedMessage
+
+------------------------------------------------------------------ INITIALIZE
 
 pairs : List a -> List b -> List (a,b)
 pairs xs ys =
