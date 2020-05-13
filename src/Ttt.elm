@@ -22,8 +22,23 @@ type alias Gamestate =
   , board : Board
   }
 
+
+------------------------------------------------------------------ DECODERS
+decodeGamestate : D.Decoder Gamestate
+decodeGamestate = D.map2 Gamestate (D.field "turn" D.int) (D.field "board" decodeBoard)
+
+decodeBoard : D.Decoder Board
+decodeBoard = D.list decodeRow
+
+decodeRow : D.Decoder Row
+decodeRow = D.list decodeSquare
+
+decodeSquare : D.Decoder Square
+decodeSquare = D.map2 Square (D.field "mark" D.int) (D.field "pos" decodePos)
+
 decodePos : D.Decoder Pos
 decodePos = D.map2 (Tuple.pair) (D.index 0 D.int) (D.index 1 D.int)
+
 
 ------------------------------------------------------------------ ENCODERS
 encodePlaceMark : Pos -> String

@@ -64,9 +64,36 @@ update msg model =
       )
 
     Recv message ->
-      ( { model | messages = model.messages ++ [message] }
-      , Cmd.none
-      )
+      let
+        parsedMessage = parseMessage message
+      in
+        case parsedMessage of
+          ChatMessage content -> ( { model | messages = model.messages ++ [content] }, Cmd.none )
+          UpdateGamestate gamestate -> ( { model | gamestate = gamestate }, Cmd.none )
+          Unknown error -> ( model, Cmd.none )
+
+parseMessage : String -> Protocol
+parseMessage json =
+    case D.decodeString (D.field "type" D.string) json of
+        Ok  value ->
+            if value == "ChatMessage" then
+              case D.decodeString (D.field "message" D.string) json of
+                Ok content -> ChatMessage content
+                Err error -> Unknown "Error while parsing content of chat message"
+            else if value == "UpdateGamestate" then
+              case D.decodeString (D.field "message" Ttt.decodeGamestate) json of
+                Ok gamestate -> UpdateGamestate gamestate
+                Err error -> Unknown "Error while parsing new gamestate"
+            else
+                Unknown "Unknown type of message"
+        Err error -> Unknown "Could not find a type"
+
+
+type Protocol
+    = ChatMessage String
+    | UpdateGamestate Ttt.Gamestate
+    | Unknown String
+
 
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg
