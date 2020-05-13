@@ -51,7 +51,7 @@ let server = http.createServer(function(request, response) {
 
 
 server.listen(80, function() {
-    console.log((new Date()) + ' Server is listening on port 8080');
+    console.log((new Date()) + ' Server is listening on port 80');
 });
 
 wsServer = new WebSocketServer({
@@ -75,7 +75,6 @@ let socketConnections = {};
 let Elm = require('./backend.js');
 let elmApp = Elm.Elm.Backend.init();
 elmApp.ports.sendMessage.subscribe(function(message) {
-    console.log("elm sub: "+message);
     for (let key in socketConnections) {
         socketConnections[key].sendUTF(message);
     }

@@ -98,16 +98,16 @@ viewChat model =
         [ Attr.type_ "text"
         , Attr.placeholder "Draft"
         , Events.onInput DraftChanged
-        , Events.on "keydown" (ifIsEnter <| Send <| Ttt.encodeSendChatMessage model.draft)
+        , Events.on "keydown" (ifIsEnter <| Send <| Ttt.stringifyChatMessage model.draft)
         , Attr.value model.draft
         ]
         []
-    , Html.button [ Events.onClick <| Send <| Ttt.encodeSendChatMessage model.draft ] [ Html.text "Send" ]
+    , Html.button [ Events.onClick <| Send <| Ttt.stringifyChatMessage model.draft ] [ Html.text "Send" ]
     ]
 
 viewGame : Model -> Html.Html Msg
 viewGame model
-  = Html.table [] (List.map viewRow model.gamestate.squares)
+  = Html.table [] (List.map viewRow model.gamestate.board)
 
 
 viewRow : Ttt.Row -> Html.Html Msg

@@ -1,11 +1,9 @@
 port module Backend exposing (..)
 
+import Ttt
+
 main : Program () Model Msg
 main =
-    nodeProgram (print "test")
-
-nodeProgram : a -> Program () Model Msg
-nodeProgram _ =
     Platform.worker
         { init = init
         , update = update
@@ -15,25 +13,23 @@ nodeProgram _ =
 port sendMessage : String -> Cmd a
 port messageReceiver : (String -> a) -> Sub a
 
-type alias Model = String
+type alias Model = Ttt.Gamestate
+
 type Msg
-    = Send String
-    | Recv String
+    = IncomingMessage String
 
 init : () -> ( Model, Cmd Msg )
-init _ = ( "init", Cmd.none )
+init _ = ( Ttt.initGamestate, Cmd.none )
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Send string -> ( model, sendMessage string )
-        Recv string -> ( print string, Cmd.none )
-
-print : Model -> Model
-print str =
-    Debug.log str str
-
+        IncomingMessage string -> (
+            let
+                newModel = model
+            in
+                ( newModel, sendMessage <| Ttt.stringifyGamestate newModel ))
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    messageReceiver Send
+    messageReceiver IncomingMessage

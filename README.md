@@ -86,7 +86,7 @@ Client --> Backend
 
 Backend --> Client
 - Update gamestate : {'type': 'UpdateGamestate', 'message': Ttt.Gamestate}
-- Illegal action : {'type': 'IllegalAction', 'message': String}
+- Error : {'type': 'ServerMessage', 'message': String}
 - Receive chat message : {'type': 'ChatMessage', 'message': String}
 
 Gamestate information:

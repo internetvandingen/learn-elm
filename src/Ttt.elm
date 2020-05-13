@@ -17,7 +17,7 @@ type alias Board = List Row
 
 type alias Gamestate =
   { turn : Int
-  , squares : Board
+  , board : Board
   }
 
 encodePlaceMark : Pos -> String
@@ -33,16 +33,42 @@ encodePlaceMark pos =
 encodePos : Pos -> E.Value
 encodePos pos = E.list E.int [Tuple.first pos, Tuple.second pos]
 
-encodeSendChatMessage : String -> String
-encodeSendChatMessage message =
+encodeSquare : Square -> E.Value
+encodeSquare square = E.object
+    [ ("mark", E.int square.mark)
+    , ("pos", encodePos square.pos)
+    ]
+
+encodeRow : Row -> E.Value
+encodeRow row = E.list encodeSquare row
+
+encodeBoard : Board -> E.Value
+encodeBoard board = E.list encodeRow board
+
+encodeGamestate : Gamestate -> E.Value
+encodeGamestate gamestate = E.object
+    [ ("turn", E.int gamestate.turn)
+    , ("board", encodeBoard gamestate.board)
+    ]
+
+stringifyGamestate : Gamestate -> String
+stringifyGamestate gamestate = encodeSendMessage "UpdateGamestate" <| encodeGamestate gamestate
+
+stringifyChatMessage : String -> String
+stringifyChatMessage messageContent = encodeSendMessage "ChatMessage" <| E.string messageContent
+
+stringifyServerMessage : String -> String
+stringifyServerMessage messageContent = encodeSendMessage "ServerMessage" <| E.string messageContent
+
+encodeSendMessage : String -> E.Value -> String
+encodeSendMessage msgType message =
     let
         encodedMessage = E.object
-            [ ("type", E.string "ChatMessage")
-            , ("message", E.string message)
+            [ ("type", E.string msgType)
+            , ("message", message)
             ]
     in
         E.encode 0 encodedMessage
-
 
 pairs : List a -> List b -> List (a,b)
 pairs xs ys =
@@ -57,7 +83,7 @@ initSquare pos =
 initGamestate : Gamestate
 initGamestate =
   { turn = 1
-  , squares = initBoard
+  , board = initBoard
   }
 
 initBoard : Board
