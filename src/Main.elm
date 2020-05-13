@@ -5,7 +5,9 @@ import Html
 import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Decode as D
-import Json.Encode as E
+
+
+import Ttt
 
 -- MAIN
 main : Program () Model Msg
@@ -25,7 +27,7 @@ port messageReceiver : (String -> msg) -> Sub msg
 type alias Model =
   { draft : String
   , messages : List String
-  , gamestate : Gamestate
+  , gamestate : Ttt.Gamestate
   }
 
 init : () -> ( Model, Cmd Msg )
@@ -33,7 +35,7 @@ init flags =
   (
     { draft = ""
     , messages = []
-    , gamestate = initGamestate
+    , gamestate = Ttt.initGamestate
     }
   , Cmd.none
   )
@@ -108,55 +110,13 @@ viewGame model
   = Html.table [] (List.map viewRow model.gamestate.squares)
 
 
-viewRow : Row -> Html.Html Msg
+viewRow : Ttt.Row -> Html.Html Msg
 viewRow row
   = Html.tr [] (List.map viewSquare row)
 
-viewSquare : Square -> Html.Html Msg
+viewSquare : Ttt.Square -> Html.Html Msg
 viewSquare square =
   let
     customStyle = Attr.style "border" "1px solid black"
   in
-    Html.td [ customStyle, Events.onClick <| Send <| encodePos square.pos ] [ Html.text <| String.fromInt square.mark ]
-
--- Game
-initGamestate : Gamestate
-initGamestate =
-  { turn = 1
-  , squares = initBoard
-  }
-
-initBoard : Board
-initBoard = List.map initRow (List.range 0 2)
-
-initRow : Int -> List Square
-initRow rowNr = List.map initSquare (pairs (List.repeat 3 rowNr) (List.range 0 2))
-
-initSquare : Pos -> Square
-initSquare pos =
-  { mark = 0
-  , pos = ( Tuple.first pos, Tuple.second pos )
-  }
-
-type alias Gamestate =
-  { turn : Int
-  , squares : Board
-  }
-
-type alias Board = List Row
-
-type alias Row = List Square
-
-type alias Square =
-  { mark : Int
-  , pos : Pos
-  }
-
-type alias Pos = (Int, Int)
-
-encodePos : Pos -> String
-encodePos pos = E.encode 0 (E.list E.int [Tuple.first pos, Tuple.second pos])
-
-pairs : List a -> List b -> List (a,b)
-pairs xs ys =
-  List.map2 Tuple.pair xs ys
+    Html.td [ customStyle, Events.onClick <| Send <| Ttt.encodePos square.pos ] [ Html.text <| String.fromInt square.mark ]

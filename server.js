@@ -4,8 +4,8 @@ let http = require('http');
 let fs = require('fs');
 let path = require('path');
 
-var Elm = require('./uttt.js');
-let elmApp = Elm.Elm.Uttt.init();
+var Elm = require('./backend.js');
+let elmApp = Elm.Elm.Backend.init();
 elmApp.ports.sendMessage.subscribe(function(message) {console.log("elm sub: "+message);});
 
 
