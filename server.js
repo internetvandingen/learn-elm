@@ -4,11 +4,6 @@ let http = require('http');
 let fs = require('fs');
 let path = require('path');
 
-var Elm = require('./backend.js');
-let elmApp = Elm.Elm.Backend.init();
-elmApp.ports.sendMessage.subscribe(function(message) {console.log("elm sub: "+message);});
-
-
 let server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     let filePath = './client' + request.url;
@@ -74,6 +69,18 @@ function originIsAllowed(origin) {
     return true;
 }
 
+
+let socketConnections = {};
+
+let Elm = require('./backend.js');
+let elmApp = Elm.Elm.Backend.init();
+elmApp.ports.sendMessage.subscribe(function(message) {
+    console.log("elm sub: "+message);
+    for (let key in socketConnections) {
+        socketConnections[key].sendUTF(message);
+    }
+});
+
 wsServer.on('request', function(request) {
     if (!originIsAllowed(request.origin)) {
         // Make sure we only accept requests from an allowed origin
@@ -83,16 +90,27 @@ wsServer.on('request', function(request) {
     }
 
     let connection = request.accept('echo-protocol', request.origin);
-    console.log((new Date()) + ' Connection accepted.');
+
+    if (!socketConnections.hasOwnProperty('p1')) {
+        connection.playerNumber = 'p1';
+        socketConnections.p1 = connection;
+    } else if (!socketConnections.hasOwnProperty('p2')) {
+        socketConnections.p2 = connection;
+        connection.playerNumber = 'p2';
+    } else {
+        connection.close();
+        return;
+    }
+
+    console.log((new Date()) + ' Connection accepted: ' + connection.playerNumber);
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             elmApp.ports.messageReceiver.send(message.utf8Data);
-            connection.sendUTF(message.utf8Data);
         }
-        else if (message.type === 'binary') {
-            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            connection.sendBytes(message.binaryData);
-        }
+        // else if (message.type === 'binary') {
+        //     console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+        //     connection.sendBytes(message.binaryData);
+        // }
     });
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
