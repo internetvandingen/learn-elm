@@ -32,8 +32,11 @@ update msg model =
             in
                 case parsedMessage of
                     ChatMessage message -> ( model, sendMessage <| Ttt.stringifyChatMessage message )
-                    --@todo: return updated model after mark is placed
-                    PlaceMark position -> ( model, sendMessage <| Ttt.stringifyChatMessage <| "successfull mark placement" )
+                    PlaceMark position ->
+                        let
+                            newModel = Ttt.parsePlaceMark position model
+                        in
+                            ( newModel, sendMessage <| Ttt.stringifyGamestate <| newModel )
                     -- @todo: don't send a chat message on error, but servermessage
                     Unknown error -> ( model, sendMessage <| Ttt.stringifyChatMessage error )
             )

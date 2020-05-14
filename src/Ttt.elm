@@ -3,6 +3,7 @@ module Ttt exposing (..)
 import Json.Encode as E
 import Json.Decode as D
 
+import Array exposing (..)
 
 ------------------------------------------------------------------ TYPES
 
@@ -13,9 +14,9 @@ type alias Square =
   , pos : Pos
   }
 
-type alias Row = List Square
+type alias Row = Array Square
 
-type alias Board = List Row
+type alias Board = Array Row
 
 type alias Gamestate =
   { turn : Int
@@ -28,10 +29,10 @@ decodeGamestate : D.Decoder Gamestate
 decodeGamestate = D.map2 Gamestate (D.field "turn" D.int) (D.field "board" decodeBoard)
 
 decodeBoard : D.Decoder Board
-decodeBoard = D.list decodeRow
+decodeBoard = D.array decodeRow
 
 decodeRow : D.Decoder Row
-decodeRow = D.list decodeSquare
+decodeRow = D.array decodeSquare
 
 decodeSquare : D.Decoder Square
 decodeSquare = D.map2 Square (D.field "mark" D.int) (D.field "pos" decodePos)
@@ -61,10 +62,10 @@ encodeSquare square = E.object
     ]
 
 encodeRow : Row -> E.Value
-encodeRow row = E.list encodeSquare row
+encodeRow row = E.array encodeSquare row
 
 encodeBoard : Board -> E.Value
-encodeBoard board = E.list encodeRow board
+encodeBoard board = E.array encodeRow board
 
 encodeGamestate : Gamestate -> E.Value
 encodeGamestate gamestate = E.object
@@ -93,14 +94,17 @@ encodeSendMessage msgType message =
 
 ------------------------------------------------------------------ INITIALIZE
 
-pairs : List a -> List b -> List (a,b)
-pairs xs ys =
-  List.map2 Tuple.pair xs ys
+pair : Array Int -> Int -> Array Pos
+pair arr fixedN =
+  Array.map (\n -> (n, fixedN)) arr
+
+range : Int -> Array Int
+range max = Array.initialize max (\n -> n)
 
 initSquare : Pos -> Square
 initSquare pos =
   { mark = 0
-  , pos = ( Tuple.first pos, Tuple.second pos )
+  , pos = pos
   }
 
 initGamestate : Gamestate
@@ -110,7 +114,13 @@ initGamestate =
   }
 
 initBoard : Board
-initBoard = List.map initRow (List.range 0 2)
+initBoard = Array.map initRow (range 3 )
 
-initRow : Int -> List Square
-initRow rowNr = List.map initSquare (pairs (List.repeat 3 rowNr) (List.range 0 2))
+initRow : Int -> Array Square
+initRow rowNr = Array.map initSquare (pair (range 3) rowNr)
+
+
+------------------------------------------------------------------ GAMELOGIC
+
+parsePlaceMark : Pos -> Gamestate -> Gamestate
+parsePlaceMark pos state = state

@@ -5,7 +5,7 @@ import Html
 import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Decode as D
-
+import Array exposing (Array)
 
 import Ttt
 
@@ -134,12 +134,12 @@ viewChat model =
 
 viewGame : Model -> Html.Html Msg
 viewGame model
-  = Html.table [] (List.map viewRow model.gamestate.board)
+  = Html.table [] (List.map viewRow (Array.toList model.gamestate.board))
 
 
 viewRow : Ttt.Row -> Html.Html Msg
 viewRow row
-  = Html.tr [] (List.map viewSquare row)
+  = Html.tr [] (List.map viewSquare (Array.toList row))
 
 viewSquare : Ttt.Square -> Html.Html Msg
 viewSquare square =
