@@ -76,15 +76,16 @@ open `index.html` in browser
 
 ## Protocol
 As clients should not be able to alter the gamestate outside the rules, it should be managed by the server.
-It is impossible to store the state in elm, because it is a functional language.
-Therefore, consider the node server a middleman that stores the gamestate and handles the socket: `Client <--> Node server <--> Backend`
-Everytime a message from the client comes in, the current gamestate stored in nodejs is combined with the client request and passed to the backend.
+So the elm keeps track of the gamestate, but it is not a server.
+Therefore, consider the node server a middleman that handles the socket connections: `Client <--> Node server <--> Backend`
+Everytime a message from the client comes in, client number is combined with the client request and passed to the backend.
+In short, node injects e.g. "player":1 into the json before it is passed to the backend
 
-Client --> Backend
+Client --> nodejs websocket --> Backend
 - Place mark : {'type': 'PlaceMark', 'message': Ttt.Pos}
 - Send chat message : {'type': 'ChatMessage', 'message': String}
 
-Backend --> Client
+Backend --> nodejs websocket --> Client
 - Update gamestate : {'type': 'UpdateGamestate', 'message': Ttt.Gamestate}
 - Error : {'type': 'ServerMessage', 'message': String}
 - Receive chat message : {'type': 'ChatMessage', 'message': String}
@@ -94,10 +95,14 @@ Gamestate information:
 - who's turn it is
 - winner: whether the game is won by somebody or is ongoing
 
-Note that both the client and the backend are written in elm, so the code for the game is reused.
+Note that both the client and the backend are written in elm, so the code for the game can be reused.
 
 
 
 ## Dependencies
 - [elm](elm-lang.org)
 - node
+	- websocket
+	- http
+	- fs
+	- path

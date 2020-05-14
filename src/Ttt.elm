@@ -23,6 +23,16 @@ type alias Gamestate =
   , board : Board
   }
 
+-- @todo: use custom player type instead of Int
+-- Empty (0), Player 1 (X), Player 2 (O)
+playerToString : Int -> String
+playerToString nr =
+    if nr == 1 then "X"
+    else if nr == 2 then "O"
+    else "_"
+
+switchPlayer : Int -> Int
+switchPlayer nr = 3-nr
 
 ------------------------------------------------------------------ DECODERS
 decodeGamestate : D.Decoder Gamestate
@@ -73,6 +83,7 @@ encodeGamestate gamestate = E.object
     , ("board", encodeBoard gamestate.board)
     ]
 
+--@todo: cleanup, make stringify a single function accepting different types
 stringifyGamestate : Gamestate -> String
 stringifyGamestate gamestate = encodeSendMessage "UpdateGamestate" <| encodeGamestate gamestate
 
@@ -122,12 +133,21 @@ initRow rowNr = Array.map initSquare (pair (range 3) rowNr)
 
 ------------------------------------------------------------------ GAMELOGIC
 
-parsePlaceMark : Pos -> Gamestate -> Gamestate
-parsePlaceMark (colN, rowN) gamestate =
-    let
-        newstate = {gamestate | turn = -1*gamestate.turn}
-        maybeRow = Array.get rowN newstate.board
-    in
-        case maybeRow of
-            Just row -> { newstate | board = Array.set rowN (Array.set colN {mark=1,pos=(colN,rowN)} row) newstate.board }
-            Nothing -> gamestate
+parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
+parsePlaceMark playerN (colN, rowN) gamestate =
+    if gamestate.turn == playerN then
+            case Array.get rowN gamestate.board of
+                Nothing -> Err "rowN out of range"
+                Just row -> case Array.get colN row of
+                    Nothing -> Err "colN out of range"
+                    Just square ->
+                        if square.mark /= 0 then
+                            Err "square is already occupied"
+                        else
+                            let
+                                newstate = {gamestate | turn = switchPlayer gamestate.turn}
+                            in
+                                Ok { newstate | board = Array.set rowN (Array.set colN {mark=playerN,pos=(colN,rowN)} row) newstate.board }
+
+    else
+        Err "not your turn"

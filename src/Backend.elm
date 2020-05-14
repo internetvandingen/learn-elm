@@ -32,37 +32,41 @@ update msg model =
             in
                 case parsedMessage of
                     ChatMessage message -> ( model, sendMessage <| Ttt.stringifyChatMessage message )
-                    PlaceMark position ->
+                    PlaceMark playerNumber position ->
                         let
-                            newModel = Ttt.parsePlaceMark position model
+                            result = Ttt.parsePlaceMark playerNumber position model
                         in
-                            ( newModel, sendMessage <| Ttt.stringifyGamestate <| newModel )
+                            case result of
+                                Ok newModel -> ( newModel, sendMessage <| Ttt.stringifyGamestate <| newModel )
+                                -- @todo: same as below
+                                Err error -> ( model, sendMessage <| Ttt.stringifyChatMessage error )
                     -- @todo: don't send a chat message on error, but servermessage
                     Unknown error -> ( model, sendMessage <| Ttt.stringifyChatMessage error )
             )
 
 parseMessage : String -> Protocol
 parseMessage json =
-    case D.decodeString (D.field "type" D.string) json of
-        Ok  value ->
+    case D.decodeString extractTypeAndPlayer json of
+        Ok  (value, playerNumber) ->
             if value == "ChatMessage" then
                 case D.decodeString (D.field "message" D.string) json of
                     Ok content -> ChatMessage content
                     Err error -> Unknown "Error while parsing content of chat message"
             else if value == "PlaceMark" then
                 case D.decodeString (D.field "message" Ttt.decodePos) json of
-                    Ok content -> PlaceMark content
+                    Ok content -> PlaceMark playerNumber content
                     Err error -> Unknown "Error while parsing position of PlaceMark"
             else
                 Unknown "Unknown type of message"
-        Err error -> Unknown "Could not find a type"
+        Err error -> Unknown "Could not find a type or player number"
 
+extractTypeAndPlayer : D.Decoder (String, Int)
+extractTypeAndPlayer = D.map2 (Tuple.pair) (D.field "type" D.string) (D.field "player" D.int)
 
 type Protocol
     = ChatMessage String
-    | PlaceMark Ttt.Pos
+    | PlaceMark Int Ttt.Pos
     | Unknown String
-
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =

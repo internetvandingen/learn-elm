@@ -91,11 +91,11 @@ wsServer.on('request', function(request) {
     let connection = request.accept('echo-protocol', request.origin);
 
     if (!socketConnections.hasOwnProperty('p1')) {
-        connection.playerNumber = 'p1';
+        connection.playerNumber = '1';
         socketConnections.p1 = connection;
     } else if (!socketConnections.hasOwnProperty('p2')) {
         socketConnections.p2 = connection;
-        connection.playerNumber = 'p2';
+        connection.playerNumber = '2';
     } else {
         connection.close();
         return;
@@ -104,7 +104,8 @@ wsServer.on('request', function(request) {
     console.log((new Date()) + ' Connection accepted: ' + connection.playerNumber);
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
-            elmApp.ports.messageReceiver.send(message.utf8Data);
+            string = injectPlayerNumber(message.utf8Data, connection.playerNumber);
+            elmApp.ports.messageReceiver.send(string);
         }
         // else if (message.type === 'binary') {
         //     console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
@@ -115,3 +116,12 @@ wsServer.on('request', function(request) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });
+
+function injectPlayerNumber(data, playerNumber) {
+    // @todo: cleanup, ugly way to insert into json, don't feel like to parse and stringify again
+    if (data.length > 2) {
+        return data.slice(0, -1) + ",\"player\":" + playerNumber + "}";
+    } else {
+        return data;
+    }
+}

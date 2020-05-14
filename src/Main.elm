@@ -146,4 +146,4 @@ viewSquare square =
   let
     customStyle = Attr.style "border" "1px solid black"
   in
-    Html.td [ customStyle, Events.onClick <| Send <| Ttt.encodePlaceMark square.pos ] [ Html.text <| String.fromInt square.mark ]
+    Html.td [ customStyle, Events.onClick <| Send <| Ttt.encodePlaceMark square.pos ] [ Html.text <| Ttt.playerToString square.mark ]
