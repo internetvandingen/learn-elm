@@ -123,4 +123,11 @@ initRow rowNr = Array.map initSquare (pair (range 3) rowNr)
 ------------------------------------------------------------------ GAMELOGIC
 
 parsePlaceMark : Pos -> Gamestate -> Gamestate
-parsePlaceMark pos state = state
+parsePlaceMark (colN, rowN) gamestate =
+    let
+        newstate = {gamestate | turn = -1*gamestate.turn}
+        maybeRow = Array.get rowN newstate.board
+    in
+        case maybeRow of
+            Just row -> { newstate | board = Array.set rowN (Array.set colN {mark=1,pos=(colN,rowN)} row) newstate.board }
+            Nothing -> gamestate
