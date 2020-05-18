@@ -74,9 +74,24 @@ let socketConnections = {};
 
 let Elm = require('./backend.js');
 let elmApp = Elm.Elm.Backend.init();
-elmApp.ports.sendMessage.subscribe(function(message) {
-    for (let key in socketConnections) {
-        socketConnections[key].sendUTF(message);
+elmApp.ports.sendMessage.subscribe(function(data) {
+    playerNumber = data[0];
+    message = data[1];
+    // @todo: this still needs some proper error handling in case data is not a list of two items
+    switch (playerNumber) {
+        case '1':
+            socketConnections['p1'].sendUTF(message);
+            break;
+        case '2':
+            socketConnections['p2'].sendUTF(message);
+            break;
+        case 'all':
+            for (let key in socketConnections) {
+                socketConnections[key].sendUTF(message);
+            }
+            break;
+        default:
+            console.log("Error while parsing message from Elm: format is incorrect, could not find p1, p2 or all "+data);
     }
 });
 

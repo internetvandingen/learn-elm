@@ -137,12 +137,12 @@ parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
 parsePlaceMark playerN (colN, rowN) gamestate =
     if gamestate.turn == playerN then
             case Array.get rowN gamestate.board of
-                Nothing -> Err "rowN out of range"
+                Nothing -> Err "Invalid move, invalid row selected"
                 Just row -> case Array.get colN row of
-                    Nothing -> Err "colN out of range"
+                    Nothing -> Err "Invalid move, invalid column selected"
                     Just square ->
                         if square.mark /= 0 then
-                            Err "square is already occupied"
+                            Err "Invalid move, square is already occupied"
                         else
                             let
                                 newstate = {gamestate | turn = switchPlayer gamestate.turn}
@@ -150,4 +150,4 @@ parsePlaceMark playerN (colN, rowN) gamestate =
                                 Ok { newstate | board = Array.set rowN (Array.set colN {mark=playerN,pos=(colN,rowN)} row) newstate.board }
 
     else
-        Err "not your turn"
+        Err "Not your turn"

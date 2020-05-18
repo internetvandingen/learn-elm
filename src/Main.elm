@@ -69,6 +69,7 @@ update msg model =
       in
         case parsedMessage of
           ChatMessage content -> ( { model | messages = model.messages ++ [content] }, Cmd.none )
+          ServerMessage content -> ( { model | messages = model.messages ++ ["Server: " ++ content] }, Cmd.none )
           UpdateGamestate gamestate -> ( { model | gamestate = gamestate }, Cmd.none )
           Unknown error -> ( model, Cmd.none )
 
@@ -80,6 +81,10 @@ parseMessage json =
               case D.decodeString (D.field "message" D.string) json of
                 Ok content -> ChatMessage content
                 Err error -> Unknown "Error while parsing content of chat message"
+            else if value == "ServerMessage" then
+              case D.decodeString (D.field "message" D.string) json of
+                Ok content -> ServerMessage content
+                Err error -> Unknown "Error while parsing content of server message"
             else if value == "UpdateGamestate" then
               case D.decodeString (D.field "message" Ttt.decodeGamestate) json of
                 Ok gamestate -> UpdateGamestate gamestate
@@ -91,6 +96,7 @@ parseMessage json =
 
 type Protocol
     = ChatMessage String
+    | ServerMessage String
     | UpdateGamestate Ttt.Gamestate
     | Unknown String
 

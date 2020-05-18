@@ -12,7 +12,7 @@ main =
         , subscriptions = subscriptions
         }
 
-port sendMessage : String -> Cmd a
+port sendMessage : (String, String) -> Cmd a
 port messageReceiver : (String -> a) -> Sub a
 
 type alias Model = Ttt.Gamestate
@@ -31,17 +31,16 @@ update msg model =
                 parsedMessage = parseMessage json
             in
                 case parsedMessage of
-                    ChatMessage message -> ( model, sendMessage <| Ttt.stringifyChatMessage message )
+                    ChatMessage message -> ( model, sendMessage ("all", Ttt.stringifyChatMessage message) )
                     PlaceMark playerNumber position ->
                         let
                             result = Ttt.parsePlaceMark playerNumber position model
                         in
                             case result of
-                                Ok newModel -> ( newModel, sendMessage <| Ttt.stringifyGamestate <| newModel )
-                                -- @todo: same as below
-                                Err error -> ( model, sendMessage <| Ttt.stringifyChatMessage error )
-                    -- @todo: don't send a chat message on error, but servermessage
-                    Unknown error -> ( model, sendMessage <| Ttt.stringifyChatMessage error )
+                                Ok newModel -> ( newModel, sendMessage ("all", Ttt.stringifyGamestate <| newModel) )
+                                Err error -> ( model, sendMessage (String.fromInt playerNumber, Ttt.stringifyServerMessage error) )
+                    --@todo: replace all by player number from error
+                    Unknown error -> ( model, sendMessage ("all", Ttt.stringifyServerMessage error) )
             )
 
 parseMessage : String -> Protocol
@@ -55,7 +54,7 @@ parseMessage json =
             else if value == "PlaceMark" then
                 case D.decodeString (D.field "message" Ttt.decodePos) json of
                     Ok content -> PlaceMark playerNumber content
-                    Err error -> Unknown "Error while parsing position of PlaceMark"
+                    Err error -> Unknown "Error while parsing content of server message"
             else
                 Unknown "Unknown type of message"
         Err error -> Unknown "Could not find a type or player number"
