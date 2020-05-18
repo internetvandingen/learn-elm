@@ -14,12 +14,17 @@
 <script type="text/javascript">
 
 // Start the Elm application.
-var app = Elm.Main.init({
+let app = Elm.Main.init({
 	node: document.getElementById('myapp')
 });
 
-// Create your WebSocket.
-var socket = new WebSocket('ws://localhost', 'echo-protocol');
+// Create WebSocket.
+let socket = new WebSocket('ws://localhost', 'echo-protocol');
+
+// Ask to update state once socket is ready
+socket.onopen = function(event) {
+	socket.send("{\"type\":\"UpdateRequest\"}");
+};
 
 // When a command goes to the `sendMessage` port, we pass the message
 // along to the WebSocket.
@@ -34,8 +39,6 @@ socket.addEventListener("message", function(event) {
 	app.ports.messageReceiver.send(event.data);
 });
 
-// If you want to use a JavaScript library to manage your WebSocket
-// connection, replace the code in JS with the alternate implementation.
 </script>
 
 </html>

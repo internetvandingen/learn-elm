@@ -37,8 +37,10 @@ update msg model =
                             result = Uttt.parsePlaceMark playerNumber position model
                         in
                             case result of
-                                Ok newModel -> ( newModel, sendMessage ("all", Uttt.stringifyGamestate <| newModel) )
+                                Ok newModel -> ( newModel, sendMessage ("all", Uttt.stringifyGamestate newModel) )
                                 Err error -> ( model, sendMessage (String.fromInt playerNumber, Uttt.stringifyServerMessage error) )
+                    UpdateGameState playerNumber ->
+                        ( model, sendMessage (String.fromInt playerNumber, Uttt.stringifyGamestate model) )
                     --@todo: replace all by player number from error
                     Unknown error -> ( model, sendMessage ("all", Uttt.stringifyServerMessage error) )
             )
@@ -55,6 +57,8 @@ parseMessage json =
                 case D.decodeString (D.field "message" Uttt.decodePos) json of
                     Ok content -> PlaceMark playerNumber content
                     Err error -> Unknown "Error while parsing content of server message"
+            else if value == "UpdateRequest" then
+                UpdateGameState playerNumber
             else
                 Unknown "Unknown type of message"
         Err error -> Unknown "Could not find a type or player number"
@@ -65,6 +69,7 @@ extractTypeAndPlayer = D.map2 (Tuple.pair) (D.field "type" D.string) (D.field "p
 type Protocol
     = ChatMessage String
     | PlaceMark Int Uttt.Pos
+    | UpdateGameState Int
     | Unknown String
 
 subscriptions : Model -> Sub Msg

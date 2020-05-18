@@ -82,11 +82,12 @@ Everytime a message from the client comes in, client number is combined with the
 In short, node injects e.g. "player":1 into the json before it is passed to the backend
 
 Client --> nodejs websocket --> Backend
-- Place mark : {'type': 'PlaceMark', 'message': Ttt.Pos}
+- Request update : {'type': 'UpdateRequest', message: ''}
+- Place mark : {'type': 'PlaceMark', 'message': Uttt.Pos}
 - Send chat message : {'type': 'ChatMessage', 'message': String}
 
 Backend --> nodejs websocket --> Client
-- Update gamestate : {'type': 'UpdateGamestate', 'message': Ttt.Gamestate}
+- Update gamestate : {'type': 'UpdateGamestate', 'message': Uttt.Gamestate}
 - Error : {'type': 'ServerMessage', 'message': String}
 - Receive chat message : {'type': 'ChatMessage', 'message': String}
 

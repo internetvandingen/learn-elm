@@ -140,7 +140,10 @@ viewChat model =
 
 viewGame : Model -> Html.Html Msg
 viewGame model
-  = Html.table [] <| viewBoard model.gamestate.board
+  = Html.div []
+    [ Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
+    , Html.table [] <| viewBoard model.gamestate.board
+    ]
 
 viewBoard : Uttt.Board -> List (Html.Html Msg)
 viewBoard board

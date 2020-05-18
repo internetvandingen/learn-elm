@@ -144,6 +144,9 @@ stringifyChatMessage messageContent = encodeSendMessage "ChatMessage" <| E.strin
 stringifyServerMessage : String -> String
 stringifyServerMessage messageContent = encodeSendMessage "ServerMessage" <| E.string messageContent
 
+stringifyUpdateRequest : String
+stringifyUpdateRequest = encodeSendMessage "UpdateRequest" <| E.string ""
+
 encodeSendMessage : String -> E.Value -> String
 encodeSendMessage msgType message =
     let
