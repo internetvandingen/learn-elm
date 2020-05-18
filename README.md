@@ -76,9 +76,9 @@ open `index.html` in browser
 
 ## Protocol
 As clients should not be able to alter the gamestate outside the rules, it should be managed by the server.
-So the elm keeps track of the gamestate, but it is not a server.
-Therefore, consider the node server a middleman that handles the socket connections: `Client <--> Node server <--> Backend`
-Everytime a message from the client comes in, client number is combined with the client request and passed to the backend.
+The elm code on the backend keeps track of the gamestate, but it cannot handle communication over http.
+For this I use node, consider the node server a middleman that handles the socket connections: `Client <--> Node server <--> Backend`
+Everytime a message from the client comes in, the client number is combined with the client request and passed to the backend.
 In short, node injects e.g. "player":1 into the json before it is passed to the backend
 
 Client --> nodejs websocket --> Backend
@@ -93,7 +93,7 @@ Backend --> nodejs websocket --> Client
 
 Gamestate information:
 - board: whether marks are placed on each square
-- who's turn it is
+- turn: who's turn it is
 - winner: whether the game is won by somebody or is ongoing
 
 Note that both the client and the backend are written in elm, so the code for the game can be reused.

@@ -31,11 +31,14 @@ type alias Board = Array Square
 type alias Gamestate =
     { turn : Int
     , board : Board
+    , availableMoves : Array Pos
+    , winner : Int
     }
 
 
 ------------------------------------------------------------------ HELPERS
 
+--@todo: remove
 --pair : Array Int -> Int -> Array Pos
 --pair arr fixedN =
 --  Array.map (\n -> (n, fixedN)) arr
@@ -61,12 +64,14 @@ initSquare pos =
     }
 
 initBoard : Board
-initBoard = Array.map (\index -> initSquare <| indexToPos index ) (range 81 )
+initBoard = Array.map (\index -> initSquare <| indexToPos index) (range 81)
 
 initGamestate : Gamestate
 initGamestate =
     { turn = 1
     , board = initBoard
+    , availableMoves = Array.map (\index -> indexToPos index) (range 81)
+    , winner = 0
     }
 
 
@@ -76,26 +81,47 @@ parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
 parsePlaceMark playerN pos gamestate =
     if gamestate.turn == playerN then
         case Array.get (posToIndex pos) gamestate.board of
-            Nothing -> Err "Invalid move, invalid square selected"
+            Nothing -> Err "Invalid move, square not on board"
             Just square ->
-                if square.mark /= 0 then
-                    Err "Invalid move, square is already occupied"
-                    else
-                        let
-                            newstate = {gamestate | turn = switchPlayer gamestate.turn}
-                        in
-                            Ok { newstate | board = Array.set (posToIndex pos) {mark=playerN,pos=pos} newstate.board }
+                if 1 == Array.length (Array.filter (\move -> move == pos) gamestate.availableMoves) then
+                    let
+                        newstate = {gamestate | turn = switchPlayer gamestate.turn}
+                    in
+                        Ok  { newstate
+                            | board = Array.set (posToIndex pos) {mark=playerN,pos=pos} newstate.board
+                            , availableMoves = getAvailableMoves pos newstate.board
+                            }
+                else
+                    Err "Invalid move"
     else
         Err "Not your turn"
 
+getAvailableMoves : Pos -> Board -> Array Pos
+getAvailableMoves lastMove board =
+    let
+        fieldPos = ( modBy 3 <| Tuple.first lastMove, modBy 3 <| Tuple.second lastMove )
+    in
+        Array.map (\square -> square.pos)
+            <| Array.filter (\square -> square.mark == 0) (getField fieldPos board)
+
+getField : (Int, Int) -> Board -> Array Square
+getField (row, col) board =
+    let
+        fieldStartingIndex = posToIndex (3*row, 3*col)
+    in
+        (Array.slice (fieldStartingIndex+18) (fieldStartingIndex+21) board)
+        |> Array.append (Array.slice (fieldStartingIndex+9) (fieldStartingIndex+12) board)
+        |> Array.append (Array.slice fieldStartingIndex (fieldStartingIndex+3) board)
 
 ------------------------------------------------------------------ DECODERS
 
 decodeGamestate : D.Decoder Gamestate
-decodeGamestate = D.map2 Gamestate (D.field "turn" D.int) (D.field "board" decodeBoard)
-
-decodeBoard : D.Decoder Board
-decodeBoard = D.array decodeSquare
+decodeGamestate
+    = D.map4 Gamestate
+        (D.field "turn" D.int)
+        (D.field "board" <| D.array decodeSquare)
+        (D.field "availableMoves" <| D.array decodePos)
+        (D.field "winner" D.int)
 
 decodeSquare : D.Decoder Square
 decodeSquare = D.map2 Square (D.field "mark" D.int) (D.field "pos" decodePos)
@@ -132,6 +158,8 @@ encodeGamestate : Gamestate -> E.Value
 encodeGamestate gamestate = E.object
     [ ("turn", E.int gamestate.turn)
     , ("board", encodeBoard gamestate.board)
+    , ("availableMoves", E.array encodePos gamestate.availableMoves)
+    , ("winner", E.int gamestate.winner)
     ]
 
 --@todo: cleanup, make stringify a single function accepting different types

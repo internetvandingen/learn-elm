@@ -12,12 +12,12 @@ import Uttt
 -- MAIN
 main : Program () Model Msg
 main =
-  Browser.element
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 -- PORTS
 port sendMessage : String -> Cmd msg
@@ -25,26 +25,26 @@ port messageReceiver : (String -> msg) -> Sub msg
 
 -- MODEL
 type alias Model =
-  { draft : String
-  , messages : List String
-  , gamestate : Uttt.Gamestate
-  }
+      { draft : String
+      , messages : List String
+      , gamestate : Uttt.Gamestate
+      }
 
 init : () -> ( Model, Cmd Msg )
 init flags =
-  (
+    (
     { draft = ""
     , messages = []
     , gamestate = Uttt.initGamestate
     }
-  , Cmd.none
-  )
+    , Cmd.none
+    )
 
 -- UPDATE
 type Msg
-  = DraftChanged String
-  | Send String
-  | Recv String
+    = DraftChanged String
+    | Send String
+    | Recv String
 
 -- Use the `sendMessage` port when someone presses ENTER or clicks
 -- the "Send" button. Check out index.html to see the corresponding
@@ -52,43 +52,50 @@ type Msg
 --
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    DraftChanged draft ->
-      ( { model | draft = draft }
-      , Cmd.none
-      )
+    case msg of
+        DraftChanged draft ->
+            ( { model | draft = draft }
+            , Cmd.none
+            )
 
-    Send message ->
-      ( { model | draft = "" }
-      , sendMessage message
-      )
+        Send message ->
+            ( { model | draft = "" }
+            , sendMessage message
+            )
 
-    Recv message ->
-      let
-        parsedMessage = parseMessage message
-      in
-        case parsedMessage of
-          ChatMessage content -> ( { model | messages = model.messages ++ [content] }, Cmd.none )
-          ServerMessage content -> ( { model | messages = model.messages ++ ["Server: " ++ content] }, Cmd.none )
-          UpdateGamestate gamestate -> ( { model | gamestate = gamestate }, Cmd.none )
-          Unknown error -> ( model, Cmd.none )
+        Recv message ->
+            let
+                parsedMessage = parseMessage message
+            in
+                case parsedMessage of
+                    ChatMessage content -> ( { model | messages = model.messages ++ [content] }, Cmd.none )
+                    ServerMessage content -> ( { model | messages = model.messages ++ ["Server: " ++ content] }, Cmd.none )
+                    UpdateGamestate gamestate -> ( { model | gamestate = gamestate }, Cmd.none )
+                    --@todo: log error to console for now, but this should at least indicate to the user that something went wrong
+                    Unknown error -> ( model, consoleLog error )
+
+consoleLog str =
+    let
+        test = Debug.log "error" str
+    in
+        Cmd.none
 
 parseMessage : String -> Protocol
 parseMessage json =
     case D.decodeString (D.field "type" D.string) json of
         Ok  value ->
             if value == "ChatMessage" then
-              case D.decodeString (D.field "message" D.string) json of
-                Ok content -> ChatMessage content
-                Err error -> Unknown "Error while parsing content of chat message"
+                case D.decodeString (D.field "message" D.string) json of
+                    Ok content -> ChatMessage content
+                    Err error -> Unknown "Error while parsing content of chat message"
             else if value == "ServerMessage" then
-              case D.decodeString (D.field "message" D.string) json of
-                Ok content -> ServerMessage content
-                Err error -> Unknown "Error while parsing content of server message"
+                case D.decodeString (D.field "message" D.string) json of
+                    Ok content -> ServerMessage content
+                    Err error -> Unknown "Error while parsing content of server message"
             else if value == "UpdateGamestate" then
-              case D.decodeString (D.field "message" Uttt.decodeGamestate) json of
-                Ok gamestate -> UpdateGamestate gamestate
-                Err error -> Unknown "Error while parsing new gamestate"
+                case D.decodeString (D.field "message" Uttt.decodeGamestate) json of
+                    Ok gamestate -> UpdateGamestate gamestate
+                    Err error -> Unknown <| D.errorToString error
             else
                 Unknown "Unknown type of message"
         Err error -> Unknown "Could not find a type"
@@ -104,58 +111,60 @@ type Protocol
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  messageReceiver Recv
+    messageReceiver Recv
 
 -- DETECT ENTER
 ifIsEnter : msg -> D.Decoder msg
 ifIsEnter msg =
-  D.field "key" D.string
-    |> D.andThen (\key -> if key == "Enter" then D.succeed msg else D.fail "some other key")
+    D.field "key" D.string
+        |> D.andThen (\key -> if key == "Enter" then D.succeed msg else D.fail "some other key")
 
 
 -- VIEW
 view : Model -> Html.Html Msg
 view model =
-  Html.div []
-    [ viewGame model
-    , viewChat model
-    ]
+    Html.div []
+        [ viewGame model
+        , viewChat model
+        ]
 
 viewChat : Model -> Html.Html Msg
 viewChat model =
-  Html.div []
-    [ Html.h2 [] [ Html.text "Echo Chat" ]
-    , Html.ul []
-        (List.map (\msg -> Html.li [] [ Html.text msg ]) model.messages)
-    , Html.input
-        [ Attr.type_ "text"
-        , Attr.placeholder "Draft"
-        , Events.onInput DraftChanged
-        , Events.on "keydown" (ifIsEnter <| Send <| Uttt.stringifyChatMessage model.draft)
-        , Attr.value model.draft
+    Html.div []
+        [ Html.h2 [] [ Html.text "Echo Chat" ]
+        , Html.ul []
+            (List.map (\msg -> Html.li [] [ Html.text msg ]) model.messages)
+        , Html.input
+            [ Attr.type_ "text"
+            , Attr.placeholder "Draft"
+            , Events.onInput DraftChanged
+            , Events.on "keydown" (ifIsEnter <| Send <| Uttt.stringifyChatMessage model.draft)
+            , Attr.value model.draft
+            ]
+            []
+        , Html.button [ Events.onClick <| Send <| Uttt.stringifyChatMessage model.draft ] [ Html.text "Send" ]
         ]
-        []
-    , Html.button [ Events.onClick <| Send <| Uttt.stringifyChatMessage model.draft ] [ Html.text "Send" ]
-    ]
 
 viewGame : Model -> Html.Html Msg
 viewGame model
-  = Html.div []
-    [ Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
-    , Html.table [] <| viewBoard model.gamestate.board
-    ]
+    = Html.div []
+        [ Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
+        , Html.table [] <| viewBoard model.gamestate.board
+        ]
 
 viewBoard : Uttt.Board -> List (Html.Html Msg)
 viewBoard board
-  = List.map (\i -> viewRow <| Uttt.getRow i board) (List.range 0 8)
+    = List.map (\i -> viewRow <| Uttt.getRow i board) (List.range 0 8)
 
 viewRow : Array Uttt.Square -> Html.Html Msg
 viewRow row
-  = Html.tr [] (List.map viewSquare (Array.toList row))
+    = Html.tr [] (List.map viewSquare (Array.toList row))
 
 viewSquare : Uttt.Square -> Html.Html Msg
 viewSquare square =
-  let
-    customStyle = Attr.style "border" "1px solid black"
-  in
-    Html.td [ customStyle, Events.onClick <| Send <| Uttt.encodePlaceMark square.pos ] [ Html.text <| Uttt.playerToString square.mark ]
+    let
+        customStyle = Attr.style "border" "1px solid black"
+    in
+        Html.td
+        [ customStyle, Events.onClick <| Send <| Uttt.encodePlaceMark square.pos ]
+        [ Html.text <| Uttt.playerToString square.mark ]
