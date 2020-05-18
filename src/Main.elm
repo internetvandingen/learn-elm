@@ -149,22 +149,23 @@ viewGame : Model -> Html.Html Msg
 viewGame model
     = Html.div []
         [ Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
-        , Html.table [] <| viewBoard model.gamestate.board
+        , Html.table [] <| viewBoard model.gamestate
         ]
 
-viewBoard : Uttt.Board -> List (Html.Html Msg)
-viewBoard board
-    = List.map (\i -> viewRow <| Uttt.getRow i board) (List.range 0 8)
+viewBoard : Uttt.Gamestate -> List (Html.Html Msg)
+viewBoard gamestate
+    = List.map (\i -> viewRow (Uttt.getRow i gamestate.board) (gamestate.availableMoves)) (List.range 0 8)
 
-viewRow : Array Uttt.Square -> Html.Html Msg
-viewRow row
-    = Html.tr [] (List.map viewSquare (Array.toList row))
+viewRow : Array Uttt.Square -> Array Uttt.Pos -> Html.Html Msg
+viewRow row availableMoves
+    = Html.tr [] (List.map (\sq -> viewSquare sq availableMoves) (Array.toList row))
 
-viewSquare : Uttt.Square -> Html.Html Msg
-viewSquare square =
-    let
-        customStyle = Attr.style "border" "1px solid black"
-    in
-        Html.td
-        [ customStyle, Events.onClick <| Send <| Uttt.encodePlaceMark square.pos ]
-        [ Html.text <| Uttt.playerToString square.mark ]
+viewSquare : Uttt.Square -> Array Uttt.Pos -> Html.Html Msg
+viewSquare square availableMoves =
+    Html.td
+    [ Attr.classList
+        [ ("square", True)
+        , ("available", Uttt.isAvailable square.pos availableMoves)
+        ]
+    , Events.onClick <| Send <| Uttt.encodePlaceMark square.pos ]
+    [ Html.text <| Uttt.playerToString square.mark ]

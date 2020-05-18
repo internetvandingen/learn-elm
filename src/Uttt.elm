@@ -13,7 +13,7 @@ playerToString : Int -> String
 playerToString nr =
     if nr == 1 then "X"
     else if nr == 2 then "O"
-    else "_"
+    else ""
 
 switchPlayer : Int -> Int
 switchPlayer nr = 3-nr
@@ -37,11 +37,6 @@ type alias Gamestate =
 
 
 ------------------------------------------------------------------ HELPERS
-
---@todo: remove
---pair : Array Int -> Int -> Array Pos
---pair arr fixedN =
---  Array.map (\n -> (n, fixedN)) arr
 
 range : Int -> Array Int
 range max = Array.initialize max (\n -> n)
@@ -83,7 +78,7 @@ parsePlaceMark playerN pos gamestate =
         case Array.get (posToIndex pos) gamestate.board of
             Nothing -> Err "Invalid move, square not on board"
             Just square ->
-                if 1 == Array.length (Array.filter (\move -> move == pos) gamestate.availableMoves) then
+                if isAvailable pos gamestate.availableMoves then
                     let
                         newstate = {gamestate | turn = switchPlayer gamestate.turn}
                     in
@@ -95,6 +90,10 @@ parsePlaceMark playerN pos gamestate =
                     Err "Invalid move"
     else
         Err "Not your turn"
+
+isAvailable : Pos -> Array Pos -> Bool
+isAvailable pos board =
+    1 == Array.length (Array.filter (\move -> move == pos) board)
 
 getAvailableMoves : Pos -> Board -> Array Pos
 getAvailableMoves lastMove board =
