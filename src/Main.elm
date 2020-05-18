@@ -7,7 +7,7 @@ import Html.Events as Events
 import Json.Decode as D
 import Array exposing (Array)
 
-import Ttt
+import Uttt
 
 -- MAIN
 main : Program () Model Msg
@@ -27,7 +27,7 @@ port messageReceiver : (String -> msg) -> Sub msg
 type alias Model =
   { draft : String
   , messages : List String
-  , gamestate : Ttt.Gamestate
+  , gamestate : Uttt.Gamestate
   }
 
 init : () -> ( Model, Cmd Msg )
@@ -35,7 +35,7 @@ init flags =
   (
     { draft = ""
     , messages = []
-    , gamestate = Ttt.initGamestate
+    , gamestate = Uttt.initGamestate
     }
   , Cmd.none
   )
@@ -86,7 +86,7 @@ parseMessage json =
                 Ok content -> ServerMessage content
                 Err error -> Unknown "Error while parsing content of server message"
             else if value == "UpdateGamestate" then
-              case D.decodeString (D.field "message" Ttt.decodeGamestate) json of
+              case D.decodeString (D.field "message" Uttt.decodeGamestate) json of
                 Ok gamestate -> UpdateGamestate gamestate
                 Err error -> Unknown "Error while parsing new gamestate"
             else
@@ -97,7 +97,7 @@ parseMessage json =
 type Protocol
     = ChatMessage String
     | ServerMessage String
-    | UpdateGamestate Ttt.Gamestate
+    | UpdateGamestate Uttt.Gamestate
     | Unknown String
 
 
@@ -131,25 +131,28 @@ viewChat model =
         [ Attr.type_ "text"
         , Attr.placeholder "Draft"
         , Events.onInput DraftChanged
-        , Events.on "keydown" (ifIsEnter <| Send <| Ttt.stringifyChatMessage model.draft)
+        , Events.on "keydown" (ifIsEnter <| Send <| Uttt.stringifyChatMessage model.draft)
         , Attr.value model.draft
         ]
         []
-    , Html.button [ Events.onClick <| Send <| Ttt.stringifyChatMessage model.draft ] [ Html.text "Send" ]
+    , Html.button [ Events.onClick <| Send <| Uttt.stringifyChatMessage model.draft ] [ Html.text "Send" ]
     ]
 
 viewGame : Model -> Html.Html Msg
 viewGame model
-  = Html.table [] (List.map viewRow (Array.toList model.gamestate.board))
+  = Html.table [] <| viewBoard model.gamestate.board
 
+viewBoard : Uttt.Board -> List (Html.Html Msg)
+viewBoard board
+  = List.map (\i -> viewRow <| Uttt.getRow i board) (List.range 0 8)
 
-viewRow : Ttt.Row -> Html.Html Msg
+viewRow : Array Uttt.Square -> Html.Html Msg
 viewRow row
   = Html.tr [] (List.map viewSquare (Array.toList row))
 
-viewSquare : Ttt.Square -> Html.Html Msg
+viewSquare : Uttt.Square -> Html.Html Msg
 viewSquare square =
   let
     customStyle = Attr.style "border" "1px solid black"
   in
-    Html.td [ customStyle, Events.onClick <| Send <| Ttt.encodePlaceMark square.pos ] [ Html.text <| Ttt.playerToString square.mark ]
+    Html.td [ customStyle, Events.onClick <| Send <| Uttt.encodePlaceMark square.pos ] [ Html.text <| Uttt.playerToString square.mark ]

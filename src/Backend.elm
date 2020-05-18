@@ -2,7 +2,7 @@ port module Backend exposing (..)
 
 import Json.Decode as D
 
-import Ttt
+import Uttt
 
 main : Program () Model Msg
 main =
@@ -15,13 +15,13 @@ main =
 port sendMessage : (String, String) -> Cmd a
 port messageReceiver : (String -> a) -> Sub a
 
-type alias Model = Ttt.Gamestate
+type alias Model = Uttt.Gamestate
 
 type Msg
     = IncomingMessage String
 
 init : () -> ( Model, Cmd Msg )
-init _ = ( Ttt.initGamestate, Cmd.none )
+init _ = ( Uttt.initGamestate, Cmd.none )
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -31,16 +31,16 @@ update msg model =
                 parsedMessage = parseMessage json
             in
                 case parsedMessage of
-                    ChatMessage message -> ( model, sendMessage ("all", Ttt.stringifyChatMessage message) )
+                    ChatMessage message -> ( model, sendMessage ("all", Uttt.stringifyChatMessage message) )
                     PlaceMark playerNumber position ->
                         let
-                            result = Ttt.parsePlaceMark playerNumber position model
+                            result = Uttt.parsePlaceMark playerNumber position model
                         in
                             case result of
-                                Ok newModel -> ( newModel, sendMessage ("all", Ttt.stringifyGamestate <| newModel) )
-                                Err error -> ( model, sendMessage (String.fromInt playerNumber, Ttt.stringifyServerMessage error) )
+                                Ok newModel -> ( newModel, sendMessage ("all", Uttt.stringifyGamestate <| newModel) )
+                                Err error -> ( model, sendMessage (String.fromInt playerNumber, Uttt.stringifyServerMessage error) )
                     --@todo: replace all by player number from error
-                    Unknown error -> ( model, sendMessage ("all", Ttt.stringifyServerMessage error) )
+                    Unknown error -> ( model, sendMessage ("all", Uttt.stringifyServerMessage error) )
             )
 
 parseMessage : String -> Protocol
@@ -52,7 +52,7 @@ parseMessage json =
                     Ok content -> ChatMessage content
                     Err error -> Unknown "Error while parsing content of chat message"
             else if value == "PlaceMark" then
-                case D.decodeString (D.field "message" Ttt.decodePos) json of
+                case D.decodeString (D.field "message" Uttt.decodePos) json of
                     Ok content -> PlaceMark playerNumber content
                     Err error -> Unknown "Error while parsing content of server message"
             else
@@ -64,7 +64,7 @@ extractTypeAndPlayer = D.map2 (Tuple.pair) (D.field "type" D.string) (D.field "p
 
 type Protocol
     = ChatMessage String
-    | PlaceMark Int Ttt.Pos
+    | PlaceMark Int Uttt.Pos
     | Unknown String
 
 subscriptions : Model -> Sub Msg

@@ -1,4 +1,4 @@
-module Ttt exposing (..)
+module Uttt exposing (..)
 
 import Json.Encode as E
 import Json.Decode as D
@@ -6,22 +6,6 @@ import Json.Decode as D
 import Array exposing (..)
 
 ------------------------------------------------------------------ TYPES
-
-type alias Pos = (Int, Int)
-
-type alias Square =
-  { mark : Int
-  , pos : Pos
-  }
-
-type alias Row = Array Square
-
-type alias Board = Array Row
-
-type alias Gamestate =
-  { turn : Int
-  , board : Board
-  }
 
 -- @todo: use custom player type instead of Int
 -- Empty (0), Player 1 (X), Player 2 (O)
@@ -34,15 +18,84 @@ playerToString nr =
 switchPlayer : Int -> Int
 switchPlayer nr = 3-nr
 
+-- (row, col)
+type alias Pos = (Int, Int)
+
+type alias Square =
+    { mark : Int
+    , pos : Pos
+    }
+
+type alias Board = Array Square
+
+type alias Gamestate =
+    { turn : Int
+    , board : Board
+    }
+
+
+------------------------------------------------------------------ HELPERS
+
+--pair : Array Int -> Int -> Array Pos
+--pair arr fixedN =
+--  Array.map (\n -> (n, fixedN)) arr
+
+range : Int -> Array Int
+range max = Array.initialize max (\n -> n)
+
+indexToPos : Int -> Pos
+indexToPos i = (i//9, modBy 9 i)
+
+posToIndex : Pos -> Int
+posToIndex pos = (Tuple.first pos)*9 + (Tuple.second pos)
+
+getRow : Int -> Board -> Array Square
+getRow rowN board = Array.slice (rowN*9) ((rowN+1)*9) board
+
+------------------------------------------------------------------ INITIALIZE
+
+initSquare : Pos -> Square
+initSquare pos =
+    { mark = 0
+    , pos = pos
+    }
+
+initBoard : Board
+initBoard = Array.map (\index -> initSquare <| indexToPos index ) (range 81 )
+
+initGamestate : Gamestate
+initGamestate =
+    { turn = 1
+    , board = initBoard
+    }
+
+
+------------------------------------------------------------------ GAMELOGIC
+
+parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
+parsePlaceMark playerN pos gamestate =
+    if gamestate.turn == playerN then
+        case Array.get (posToIndex pos) gamestate.board of
+            Nothing -> Err "Invalid move, invalid square selected"
+            Just square ->
+                if square.mark /= 0 then
+                    Err "Invalid move, square is already occupied"
+                    else
+                        let
+                            newstate = {gamestate | turn = switchPlayer gamestate.turn}
+                        in
+                            Ok { newstate | board = Array.set (posToIndex pos) {mark=playerN,pos=pos} newstate.board }
+    else
+        Err "Not your turn"
+
+
 ------------------------------------------------------------------ DECODERS
+
 decodeGamestate : D.Decoder Gamestate
 decodeGamestate = D.map2 Gamestate (D.field "turn" D.int) (D.field "board" decodeBoard)
 
 decodeBoard : D.Decoder Board
-decodeBoard = D.array decodeRow
-
-decodeRow : D.Decoder Row
-decodeRow = D.array decodeSquare
+decodeBoard = D.array decodeSquare
 
 decodeSquare : D.Decoder Square
 decodeSquare = D.map2 Square (D.field "mark" D.int) (D.field "pos" decodePos)
@@ -52,6 +105,7 @@ decodePos = D.map2 (Tuple.pair) (D.index 0 D.int) (D.index 1 D.int)
 
 
 ------------------------------------------------------------------ ENCODERS
+
 encodePlaceMark : Pos -> String
 encodePlaceMark pos =
     let
@@ -71,11 +125,8 @@ encodeSquare square = E.object
     , ("pos", encodePos square.pos)
     ]
 
-encodeRow : Row -> E.Value
-encodeRow row = E.array encodeSquare row
-
 encodeBoard : Board -> E.Value
-encodeBoard board = E.array encodeRow board
+encodeBoard board = E.array encodeSquare board
 
 encodeGamestate : Gamestate -> E.Value
 encodeGamestate gamestate = E.object
@@ -102,52 +153,3 @@ encodeSendMessage msgType message =
             ]
     in
         E.encode 0 encodedMessage
-
------------------------------------------------------------------- INITIALIZE
-
-pair : Array Int -> Int -> Array Pos
-pair arr fixedN =
-  Array.map (\n -> (n, fixedN)) arr
-
-range : Int -> Array Int
-range max = Array.initialize max (\n -> n)
-
-initSquare : Pos -> Square
-initSquare pos =
-  { mark = 0
-  , pos = pos
-  }
-
-initGamestate : Gamestate
-initGamestate =
-  { turn = 1
-  , board = initBoard
-  }
-
-initBoard : Board
-initBoard = Array.map initRow (range 3 )
-
-initRow : Int -> Array Square
-initRow rowNr = Array.map initSquare (pair (range 3) rowNr)
-
-
------------------------------------------------------------------- GAMELOGIC
-
-parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
-parsePlaceMark playerN (colN, rowN) gamestate =
-    if gamestate.turn == playerN then
-            case Array.get rowN gamestate.board of
-                Nothing -> Err "Invalid move, invalid row selected"
-                Just row -> case Array.get colN row of
-                    Nothing -> Err "Invalid move, invalid column selected"
-                    Just square ->
-                        if square.mark /= 0 then
-                            Err "Invalid move, square is already occupied"
-                        else
-                            let
-                                newstate = {gamestate | turn = switchPlayer gamestate.turn}
-                            in
-                                Ok { newstate | board = Array.set rowN (Array.set colN {mark=playerN,pos=(colN,rowN)} row) newstate.board }
-
-    else
-        Err "Not your turn"
