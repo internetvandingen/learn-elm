@@ -91,6 +91,7 @@ initGamestate =
 
 ------------------------------------------------------------------ GAMELOGIC
 
+--@todo: refactor, this should return a custom type on Err instead of String
 parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
 parsePlaceMark playerN pos gamestate =
     if gamestate.winner /= 0 then
@@ -110,7 +111,7 @@ parsePlaceMark playerN pos gamestate =
                         Ok  { gamestate
                             | board = newBoard
                             , turn = switchPlayer gamestate.turn
-                            , availableMoves = getAvailableMoves pos newBoard
+                            , availableMoves = if winner == 0 then getAvailableMoves pos newBoard else Array.empty
                             , winner = winner
                             }
                 else
@@ -193,9 +194,20 @@ getAvailableMoves : Pos -> Board -> Array Pos
 getAvailableMoves lastMove board =
     let
         fieldPos = ( modBy 3 <| Tuple.first lastMove, modBy 3 <| Tuple.second lastMove )
+
+        field = getField fieldPos board
     in
-        Array.map (\square -> square.pos)
-            <| Array.filter (\square -> square.mark == 0) (getField fieldPos board)
+        if ( getWinnerField field == 0 && (not <| isFieldFull field) ) then
+            -- field game unfinished, return all free squares in field
+            Array.map (\square -> square.pos)
+                <| Array.filter (\square -> square.mark == 0) field
+        else
+            -- field game is finished (winner or drawn), return all free squares in board except in that field
+            Array.map (\square -> square.pos)
+                <| Array.filter (\square -> (square.mark == 0 && (not <| inArray square field))) board
+
+isFieldFull : Array Square -> Bool
+isFieldFull field = Array.isEmpty <| Array.filter (\sq -> sq.mark == 0) field
 
 getField : (Int, Int) -> Board -> Array Square
 getField (row, col) board =

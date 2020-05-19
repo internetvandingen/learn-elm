@@ -40,6 +40,12 @@ suite =
             , test "board length" <|
                 \_ -> Array.length Uttt.initGamestate.board |> Expect.equal 81
             ]
+        , describe "inArray"
+            [ test "in array" <|
+                \_ -> Uttt.inArray (1,2) (Array.fromList [(2,1), (1,2), (0,0)]) |> Expect.true "Element is in array, but got false"
+            , test "not in array" <|
+                \_ -> Uttt.inArray (1,2) (Array.fromList [(2,1), (0,0)]) |> Expect.false "Element is not in array, but got true"
+            ]
         , describe "parsePlaceMark"
             [ test "valid move 1" <|
                 \_ -> Uttt.parsePlaceMark 1 (8,8) Uttt.initGamestate |> Expect.ok
@@ -49,8 +55,18 @@ suite =
                         setup = Uttt.parsePlaceMark 1 (8,8) Uttt.initGamestate
                     in
                         case setup of
-                            Ok validGamestate -> Uttt.parsePlaceMark 2 (7,7) validGamestate |> Expect.ok
                             Err _ -> Expect.fail "Something went wrong while setting up for this test"
+                            Ok gamestateFirstMove ->
+                                if (8 == Array.length gamestateFirstMove.availableMoves) then
+                                    case Uttt.parsePlaceMark 2 (7,7) gamestateFirstMove of
+                                        Err _ -> Expect.fail "Placing a valid move produced an error"
+                                        Ok gamestateSecondMove -> Expect.true "Gamestate is invalid"
+                                            (  (9 == Array.length gamestateSecondMove.availableMoves)
+                                            && (1 == Array.length (Array.filter (\sq -> sq.mark == 1) gamestateSecondMove.board) )
+                                            && (1 == Array.length (Array.filter (\sq -> sq.mark == 2) gamestateSecondMove.board) )
+                                            )
+                                else
+                                    Expect.fail "wrong number of available moves after move 1"
 
             , test "not your turn" <|
                 \_ -> Uttt.parsePlaceMark 2 (0,0) Uttt.initGamestate |> Expect.equal (Err "Not your turn")
@@ -64,11 +80,5 @@ suite =
                             Err _ -> Expect.fail "Something went wrong while setting up for this test"
             , test "invalid square selected" <|
                 \_ -> Uttt.parsePlaceMark 1 (9,0) Uttt.initGamestate |> Expect.equal (Err "Invalid move")
-            ]
-        , describe "inArray"
-            [ test "in array" <|
-                \_ -> Uttt.inArray (1,2) (Array.fromList [(2,1), (1,2), (0,0)]) |> Expect.true "Element is in array, but got false"
-            , test "not in array" <|
-                \_ -> Uttt.inArray (1,2) (Array.fromList [(2,1), (0,0)]) |> Expect.false "Element is not in array, but got true"
             ]
         ]
