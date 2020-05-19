@@ -3,15 +3,15 @@ module Uttt exposing (
     , Square
     , Pos
     , initGamestate
-    , stringifyGamestate
-    , stringifyChatMessage
-    , stringifyServerMessage
-    , stringifyUpdateRequest
     , parsePlaceMark
     , playerToString
     , getRow
     , isMoveAvailable
-    , encodePlaceMark
+    , stringifyGamestate
+    , stringifyChatMessage
+    , stringifyServerMessage
+    , stringifyUpdateRequest
+    , stringifyPlaceMark
     , decodeGamestate
     , decodePos)
 
@@ -225,16 +225,6 @@ decodePos = D.map2 (Tuple.pair) (D.index 0 D.int) (D.index 1 D.int)
 
 ------------------------------------------------------------------ ENCODERS
 
-encodePlaceMark : Pos -> String
-encodePlaceMark pos =
-    let
-        encodedPos = E.object
-            [ ("type", E.string "PlaceMark")
-            , ("message", encodePos pos)
-            ]
-    in
-        E.encode 0 encodedPos
-
 encodePos : Pos -> E.Value
 encodePos pos = E.list E.int [Tuple.first pos, Tuple.second pos]
 
@@ -256,6 +246,9 @@ encodeGamestate gamestate = E.object
     ]
 
 --@todo: cleanup, make stringify a single function accepting different types
+stringifyPlaceMark : Pos -> String
+stringifyPlaceMark pos = encodeSendMessage "PlaceMark" <| encodePos pos
+
 stringifyGamestate : Gamestate -> String
 stringifyGamestate gamestate = encodeSendMessage "UpdateGamestate" <| encodeGamestate gamestate
 
