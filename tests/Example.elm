@@ -6,6 +6,7 @@ import Test exposing (..)
 
 import Uttt
 
+import Array
 import Json.Decode as D
 
 suite : Test
@@ -26,5 +27,48 @@ suite =
         , describe "Decoders"
             [ test "decodePos" <|
                 \_ -> D.decodeString Uttt.decodePos "[1,2]" |> Expect.equal (Ok (1,2))
+            ]
+        , describe "initGamestate"
+            [ test "winner" <|
+                \_ -> Uttt.initGamestate.winner |> Expect.equal 0
+            , test "turn" <|
+                \_ -> Uttt.initGamestate.turn |> Expect.equal 1
+            , test "available moves" <|
+                \_ -> Array.length Uttt.initGamestate.availableMoves |> Expect.equal 81
+            , test "board mark" <|
+                \_ -> Array.foldl (\square sum -> sum+square.mark) 0 Uttt.initGamestate.board |> Expect.equal 0
+            , test "board length" <|
+                \_ -> Array.length Uttt.initGamestate.board |> Expect.equal 81
+            ]
+        , describe "parsePlaceMark"
+            [ test "valid move 1" <|
+                \_ -> Uttt.parsePlaceMark 1 (8,8) Uttt.initGamestate |> Expect.ok
+            , test "valid move 2" <|
+                \_ ->
+                    let
+                        setup = Uttt.parsePlaceMark 1 (8,8) Uttt.initGamestate
+                    in
+                        case setup of
+                            Ok validGamestate -> Uttt.parsePlaceMark 2 (7,7) validGamestate |> Expect.ok
+                            Err _ -> Expect.fail "Something went wrong while setting up for this test"
+
+            , test "not your turn" <|
+                \_ -> Uttt.parsePlaceMark 2 (0,0) Uttt.initGamestate |> Expect.equal (Err "Not your turn")
+            , test "invalid move" <|
+                \_ ->
+                    let
+                        setup = Uttt.parsePlaceMark 1 (8,8) Uttt.initGamestate
+                    in
+                        case setup of
+                            Ok validGamestate -> Uttt.parsePlaceMark 2 (8,8) validGamestate |> Expect.equal (Err "Invalid move")
+                            Err _ -> Expect.fail "Something went wrong while setting up for this test"
+            , test "invalid square selected" <|
+                \_ -> Uttt.parsePlaceMark 1 (9,0) Uttt.initGamestate |> Expect.equal (Err "Invalid move")
+            ]
+        , describe "inArray"
+            [ test "in array" <|
+                \_ -> Uttt.inArray (1,2) (Array.fromList [(2,1), (1,2), (0,0)]) |> Expect.true "Element is in array, but got false"
+            , test "not in array" <|
+                \_ -> Uttt.inArray (1,2) (Array.fromList [(2,1), (0,0)]) |> Expect.false "Element is not in array, but got true"
             ]
         ]

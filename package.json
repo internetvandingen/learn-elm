@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "clean": "rm -f client/elm.js && rm -f backend.js",
-    "test": "npm run clean && elm-test",
-    "build": "npm run test && elm make src/Main.elm --output=client/elm.js && elm make src/Backend.elm --output=backend.js",
-    "start": "npm run build && node server.js"
+    "build": "npm run clean && elm make src/Main.elm --output=client/elm.js && elm make src/Backend.elm --output=backend.js",
+    "test": "npm run build && elm-test",
+    "start": "npm run test && node server.js"
   },
   "repository": {
     "type": "git",

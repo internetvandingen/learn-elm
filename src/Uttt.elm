@@ -5,8 +5,8 @@ module Uttt exposing (
     , initGamestate
     , parsePlaceMark
     , playerToString
+    , inArray
     , getRow
-    , isMoveAvailable
     , stringifyGamestate
     , stringifyChatMessage
     , stringifyServerMessage
@@ -62,8 +62,12 @@ indexToPos i = (i//9, modBy 9 i)
 posToIndex : Pos -> Int
 posToIndex pos = (Tuple.first pos)*9 + (Tuple.second pos)
 
-getRow : Int -> Board -> Array Square
-getRow rowN board = Array.slice (rowN*9) ((rowN+1)*9) board
+inArray : a -> Array a -> Bool
+inArray needle arr =
+    1 == Array.length (Array.filter (\x -> x == needle) arr)
+
+getRow : Int -> Array a -> Array a
+getRow rowN arr = Array.slice (rowN*9) ((rowN+1)*9) arr
 
 ------------------------------------------------------------------ INITIALIZE
 
@@ -95,9 +99,9 @@ parsePlaceMark playerN pos gamestate =
         Err "Not your turn"
     else
         case Array.get (posToIndex pos) gamestate.board of
-            Nothing -> Err "Invalid move, square not on board"
+            Nothing -> Err "Invalid move"
             Just square ->
-                if isMoveAvailable pos gamestate.availableMoves then
+                if inArray pos gamestate.availableMoves then
                     let
                         newBoard = Array.set (posToIndex pos) {mark=playerN,pos=pos} gamestate.board
 
@@ -107,7 +111,7 @@ parsePlaceMark playerN pos gamestate =
                             | board = newBoard
                             , turn = switchPlayer gamestate.turn
                             , availableMoves = getAvailableMoves pos newBoard
-                            , winner = Debug.log "winner" winner
+                            , winner = winner
                             }
                 else
                     Err "Invalid move"
@@ -184,10 +188,6 @@ getWinnerArray arr =
         2
     else
         0
-
-isMoveAvailable : Pos -> Array Pos -> Bool
-isMoveAvailable pos moves =
-    1 == Array.length (Array.filter (\move -> move == pos) moves)
 
 getAvailableMoves : Pos -> Board -> Array Pos
 getAvailableMoves lastMove board =
