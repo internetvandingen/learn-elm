@@ -75,22 +75,100 @@ initGamestate =
 parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
 parsePlaceMark playerN pos gamestate =
     if gamestate.turn == playerN then
+        Err "Not your turn"
+    else if gamestate.winner /= 0 then
+        Err "Game is over"
+    else
         case Array.get (posToIndex pos) gamestate.board of
             Nothing -> Err "Invalid move, square not on board"
             Just square ->
-                if isAvailable pos gamestate.availableMoves then
+                --if isAvailable pos gamestate.availableMoves then
                     let
                         newBoard = Array.set (posToIndex pos) {mark=playerN,pos=pos} gamestate.board
+
+                        winner = getWinner newBoard
                     in
                         Ok  { gamestate
                             | board = newBoard
                             , turn = switchPlayer gamestate.turn
                             , availableMoves = getAvailableMoves pos newBoard
+                            , winner = Debug.log "winner" winner
                             }
-                else
-                    Err "Invalid move"
+                --else
+                --    Err "Invalid move"
+
+getWinner : Board -> Int
+getWinner board = getWinnerField <| constructSuper board
+
+constructSuper : Board -> Array Square
+constructSuper board = Array.map (\i-> {mark=getWinnerField <| getField (i//3, modBy 3 i) board, pos = (i//3, modBy 3 i)}) (range 9)
+
+getWinnerField : Array Square -> Int
+getWinnerField field =
+    let
+        row = getWinnerRow field
+        col = getWinnerCol field
+        diag = getWinnerDiagonal field
+    in
+        if row /= 0 then
+            row
+        else if col /= 0 then
+            col
+        else
+            diag
+
+
+getWinnerDiagonal : Array Square -> Int
+getWinnerDiagonal field =
+    let
+        diag1 = getWinnerArray (Array.slice 0 1 field |> Array.append (Array.slice 4 5 field) |> Array.append (Array.slice 8 9 field))
+        diag2 = getWinnerArray (Array.slice 2 3 field |> Array.append (Array.slice 4 5 field) |> Array.append (Array.slice 6 7 field))
+    in
+        if diag1 /= 0 then
+            diag1
+        else
+            diag2
+
+getWinnerCol : Array Square -> Int
+getWinnerCol field =
+    let
+        col1 = getWinnerArray <| getColumn 0 field
+        col2 = getWinnerArray <| getColumn 1 field
+    in
+        if col1 /= 0 then
+            col1
+        else if col2 /= 0 then
+            col2
+        else
+            getWinnerArray <| getColumn 2 field
+
+getColumn : Int -> Array Square -> Array Square
+getColumn col field =
+    Array.slice col (col+1) field |> Array.append (Array.slice (col+3) (col+4) field) |> Array.append (Array.slice (col+6) (col+7) field)
+
+
+getWinnerRow : Array Square -> Int
+getWinnerRow field =
+    let
+        row1 = getWinnerArray <| Array.slice 0 3 field
+
+        row2 = getWinnerArray <| Array.slice 3 6 field
+    in
+        if row1 /= 0 then
+            row1
+        else if row2 /= 0 then
+            row2
+        else
+            getWinnerArray <| Array.slice 6 9 field
+
+getWinnerArray : Array Square -> Int
+getWinnerArray arr =
+    if 3 == (Array.length <| Array.filter (\sq-> sq.mark == 1) arr) then
+        1
+    else if 3 == (Array.length <| Array.filter (\sq-> sq.mark == 2) arr) then
+        2
     else
-        Err "Not your turn"
+        0
 
 isAvailable : Pos -> Array Pos -> Bool
 isAvailable pos board =

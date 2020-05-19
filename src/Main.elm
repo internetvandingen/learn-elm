@@ -148,7 +148,9 @@ viewChat model =
 viewGame : Model -> Html.Html Msg
 viewGame model
     = Html.div []
-        [ Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
+        [ Html.text <| Uttt.playerToString model.gamestate.turn ++ " to make a move."
+        , Html.text <| "Winner: " ++ Uttt.playerToString model.gamestate.winner
+        , Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
         , Html.table [] <| viewBoard model.gamestate
         ]
 
