@@ -80,11 +80,12 @@ parsePlaceMark playerN pos gamestate =
             Just square ->
                 if isAvailable pos gamestate.availableMoves then
                     let
-                        newstate = {gamestate | turn = switchPlayer gamestate.turn}
+                        newBoard = Array.set (posToIndex pos) {mark=playerN,pos=pos} gamestate.board
                     in
-                        Ok  { newstate
-                            | board = Array.set (posToIndex pos) {mark=playerN,pos=pos} newstate.board
-                            , availableMoves = getAvailableMoves pos newstate.board
+                        Ok  { gamestate
+                            | board = newBoard
+                            , turn = switchPlayer gamestate.turn
+                            , availableMoves = getAvailableMoves pos newBoard
                             }
                 else
                     Err "Invalid move"
