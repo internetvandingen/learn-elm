@@ -1,5 +1,5 @@
-*.js
-!server.js
+build/*
+!build/package.json
 
 # elm-package generated files
 elm-stuff

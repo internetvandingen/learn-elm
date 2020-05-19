@@ -4,10 +4,13 @@
   "description": "Ultimate tic-tac-toe server",
   "main": "index.js",
   "scripts": {
-    "clean": "rm -f client/elm.js && rm -f backend.js",
-    "build": "npm run clean && elm make src/Main.elm --output=client/elm.js && elm make src/Backend.elm --output=backend.js",
-    "test": "npm run build && elm-test",
-    "start": "npm run test && node server.js"
+    "clean": "find ./build/* ! -name 'package.json' -exec rm -rf {} + && exit 0",
+    "build:copy" : "cp ./server.js ./build/server.js && cp -r ./client/ ./build/ && exit 0",
+    "build:make": "elm make ./src/Main.elm --output=./build/client/elm.js && elm make ./src/Backend.elm --output=./build/backend.js && exit 0",
+    "build": "npm run build:copy && npm run build:make",
+    "test" : "elm-test",
+    "prestart" : "npm run clean && npm run build && npm run test",
+    "start": "npm --prefix ./build start"
   },
   "repository": {
     "type": "git",

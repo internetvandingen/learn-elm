@@ -20,7 +20,7 @@ let app = Elm.Main.init({
 });
 
 // Create WebSocket.
-let socket = new WebSocket('ws://localhost', 'echo-protocol');
+let socket = new WebSocket('ws://localhost:8080', 'echo-protocol');
 
 // Ask to update state once socket is ready
 socket.onopen = function(event) {

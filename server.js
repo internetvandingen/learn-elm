@@ -50,8 +50,8 @@ let server = http.createServer(function(request, response) {
 });
 
 
-server.listen(80, function() {
-    console.log((new Date()) + ' Server is listening on port 80');
+server.listen(8080, function() {
+    console.log((new Date()) + ' Server is listening on port 8080');
 });
 
 wsServer = new WebSocketServer({
