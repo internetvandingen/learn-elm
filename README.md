@@ -53,6 +53,11 @@ week 1:
 week 2:
 - Ultimate tic tac toe requirements opstellen, zie trello
 - ci opzetten
+- tic tac toe bouwen
+
+week 3:
+- Ultimate tic tac toe functioneel afmaken en uiterlijk bruikbaar maken
+- testing opzetten
 
 Voor verdere planning, zie trello
 
@@ -68,14 +73,16 @@ Voor verdere planning, zie trello
 
 ## Install
 `npm install`
-`npm run build`
 
 ## Testing
 Package [`elm-explorations/test`](https://package.elm-lang.org/packages/elm-explorations/test/latest/) is used for unit testing.
 
-## Run
-`npm run start`
-open `index.html` in browser
+## Scripts
+Run a script called `test` with `npm run test`
+- `build`: compiles elm sources and copies `server.js` and everything in `client/` to the `build/` directory
+- `clean`: removes everything from the `build/` directory
+- `test`: runs elm tests defined in `tests/`
+- `start`: runs `clean`, `build` and `test` scripts. Then starts a node server from the `build/` directory. Go to `localhost:8080` to acces the application.
 
 ## Protocol
 As clients should not be able to alter the gamestate outside the rules, it should be managed by the server.
