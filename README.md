@@ -70,6 +70,9 @@ Voor verdere planning, zie trello
 `npm install`
 `npm run build`
 
+## Testing
+Package [`elm-explorations/test`](https://package.elm-lang.org/packages/elm-explorations/test/latest/) is used for unit testing.
+
 ## Run
 `npm run start`
 open `index.html` in browser
@@ -101,7 +104,7 @@ Note that both the client and the backend are written in elm, so the code for th
 
 
 ## Dependencies
-- [elm](elm-lang.org)
+- [elm](https://elm-lang.org)
 - node
 	- websocket
 	- http

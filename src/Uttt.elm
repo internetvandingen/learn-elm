@@ -1,4 +1,19 @@
-module Uttt exposing (..)
+module Uttt exposing (
+      Gamestate
+    , Square
+    , Pos
+    , initGamestate
+    , stringifyGamestate
+    , stringifyChatMessage
+    , stringifyServerMessage
+    , stringifyUpdateRequest
+    , parsePlaceMark
+    , playerToString
+    , getRow
+    , isMoveAvailable
+    , encodePlaceMark
+    , decodeGamestate
+    , decodePos)
 
 import Json.Encode as E
 import Json.Decode as D
@@ -74,15 +89,15 @@ initGamestate =
 
 parsePlaceMark : Int -> Pos -> Gamestate -> Result String Gamestate
 parsePlaceMark playerN pos gamestate =
-    if gamestate.turn == playerN then
-        Err "Not your turn"
-    else if gamestate.winner /= 0 then
+    if gamestate.winner /= 0 then
         Err "Game is over"
+    else if gamestate.turn /= playerN then
+        Err "Not your turn"
     else
         case Array.get (posToIndex pos) gamestate.board of
             Nothing -> Err "Invalid move, square not on board"
             Just square ->
-                --if isAvailable pos gamestate.availableMoves then
+                if isMoveAvailable pos gamestate.availableMoves then
                     let
                         newBoard = Array.set (posToIndex pos) {mark=playerN,pos=pos} gamestate.board
 
@@ -94,8 +109,8 @@ parsePlaceMark playerN pos gamestate =
                             , availableMoves = getAvailableMoves pos newBoard
                             , winner = Debug.log "winner" winner
                             }
-                --else
-                --    Err "Invalid move"
+                else
+                    Err "Invalid move"
 
 getWinner : Board -> Int
 getWinner board = getWinnerField <| constructSuper board
@@ -170,9 +185,9 @@ getWinnerArray arr =
     else
         0
 
-isAvailable : Pos -> Array Pos -> Bool
-isAvailable pos board =
-    1 == Array.length (Array.filter (\move -> move == pos) board)
+isMoveAvailable : Pos -> Array Pos -> Bool
+isMoveAvailable pos moves =
+    1 == Array.length (Array.filter (\move -> move == pos) moves)
 
 getAvailableMoves : Pos -> Board -> Array Pos
 getAvailableMoves lastMove board =

@@ -4,9 +4,9 @@
   "description": "Ultimate tic-tac-toe server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -f client/elm.js && rm -f backend.js",
-    "build": "elm make src/Main.elm --output=client/elm.js && elm make src/Backend.elm --output=backend.js",
+    "test": "npm run clean && elm-test",
+    "build": "npm run test && elm make src/Main.elm --output=client/elm.js && elm make src/Backend.elm --output=backend.js",
     "start": "npm run build && node server.js"
   },
   "repository": {
@@ -16,6 +16,7 @@
   "author": "lknoll",
   "license": "ISC",
   "dependencies": {
+    "elm-test": "^0.19.1-revision2",
     "websocket": "^1.0.31"
   }
 }

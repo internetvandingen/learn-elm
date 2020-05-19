@@ -167,7 +167,7 @@ viewSquare square availableMoves =
     Html.td
     [ Attr.classList
         [ ("square", True)
-        , ("available", Uttt.isAvailable square.pos availableMoves)
+        , ("available", Uttt.isMoveAvailable square.pos availableMoves)
         ]
     , Events.onClick <| Send <| Uttt.encodePlaceMark square.pos ]
     [ Html.text <| Uttt.playerToString square.mark ]
