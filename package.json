@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "description": "Ultimate tic-tac-toe server",
   "main": "index.js",
+  "watch": {
+    "build": {
+      "patterns": ["src"],
+      "extensions": "elm,html,css"
+    }
+  },
   "scripts": {
+    "watch": "npm-watch",
     "clean": "find ./build/* ! -name 'package.json' -exec rm -rf {} + && exit 0",
     "build:copy": "cp ./src/server.js ./build/server.js && cp -r ./src/client/ ./build/ && exit 0",
     "build:make": "elm make ./src/Main.elm --output=./build/client/elm.js && elm make ./src/Backend.elm --output=./build/backend.js && exit 0",
@@ -20,6 +27,7 @@
   "license": "ISC",
   "dependencies": {
     "elm-test": "^0.19.1-revision2",
+    "npm-watch": "^0.6.0",
     "uuid": "^8.0.0",
     "websocket": "^1.0.31"
   }
