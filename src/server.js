@@ -3,6 +3,7 @@ let WebSocketServer = require('websocket').server;
 let http = require('http');
 let fs = require('fs');
 let path = require('path');
+let uuid = require('uuid');
 
 let server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -106,20 +107,22 @@ wsServer.on('request', function(request) {
     let connection = request.accept('echo-protocol', request.origin);
 
     if (!socketConnections.hasOwnProperty('p1')) {
-        connection.playerNumber = '1';
+        connection.id = '1';
         socketConnections.p1 = connection;
     } else if (!socketConnections.hasOwnProperty('p2')) {
         socketConnections.p2 = connection;
-        connection.playerNumber = '2';
+        connection.id = '2';
     } else {
-        connection.close();
+        connection.id = uuid.v4();
+        socketConnections[connection.id] = connection;
+        // connection.close();
         return;
     }
 
-    console.log((new Date()) + ' Connection accepted: ' + connection.playerNumber);
+    console.log((new Date()) + ' Connection accepted: ' + connection.id);
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
-            string = injectPlayerNumber(message.utf8Data, connection.playerNumber);
+            string = injectPlayerNumber(message.utf8Data, connection.id);
             elmApp.ports.messageReceiver.send(string);
         }
         // else if (message.type === 'binary') {

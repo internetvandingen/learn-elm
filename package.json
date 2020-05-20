@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "clean": "find ./build/* ! -name 'package.json' -exec rm -rf {} + && exit 0",
-    "build:copy" : "cp ./src/server.js ./build/server.js && cp -r ./src/client/ ./build/ && exit 0",
+    "build:copy": "cp ./src/server.js ./build/server.js && cp -r ./src/client/ ./build/ && exit 0",
     "build:make": "elm make ./src/Main.elm --output=./build/client/elm.js && elm make ./src/Backend.elm --output=./build/backend.js && exit 0",
     "build": "npm run build:copy && npm run build:make",
-    "test" : "elm-test",
-    "prestart" : "npm run clean && npm run build && npm run test",
+    "test": "elm-test",
+    "prestart": "npm run clean && npm run build && npm run test",
     "start": "npm --prefix ./build start"
   },
   "repository": {
@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "elm-test": "^0.19.1-revision2",
+    "uuid": "^8.0.0",
     "websocket": "^1.0.31"
   }
 }

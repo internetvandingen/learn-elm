@@ -1,4 +1,4 @@
-module Example exposing (..)
+module UtttTest exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
