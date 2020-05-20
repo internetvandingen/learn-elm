@@ -3,10 +3,12 @@ module Uttt exposing (
     , Square
     , Pos
     , initGamestate
+    , initDemoGamestate
     , parsePlaceMark
     , playerToString
     , inArray
     , getRow
+    , getField
     , stringifyGamestate
     , stringifyChatMessage
     , stringifyServerMessage
@@ -14,6 +16,8 @@ module Uttt exposing (
     , stringifyPlaceMark
     , decodeGamestate
     , decodePos)
+
+--@todo: remove: getRow getField, initDemoGamestate
 
 import Json.Encode as E
 import Json.Decode as D
@@ -88,6 +92,20 @@ initGamestate =
     , winner = 0
     }
 
+initDemoGamestate : Gamestate
+initDemoGamestate =
+    case demoApply (Array.fromList [(4,4), (5,5)]) (Ok initGamestate) of
+        Ok gamestate -> gamestate
+        Err _ -> initGamestate
+
+demoApply : Array Pos -> Result String Gamestate -> Result String Gamestate
+demoApply arrPos result =
+    case result of
+        Err error -> Err error
+        Ok gamestate ->
+            case Array.get 0 arrPos of
+                Nothing -> Ok gamestate
+                Just pos -> demoApply (slice 1 (Array.length arrPos) arrPos) (parsePlaceMark gamestate.turn pos gamestate)
 
 ------------------------------------------------------------------ GAMELOGIC
 

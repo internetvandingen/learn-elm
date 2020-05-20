@@ -35,7 +35,7 @@ init flags =
     (
     { draft = ""
     , messages = []
-    , gamestate = Uttt.initGamestate
+    , gamestate = Uttt.initDemoGamestate
     }
     , Cmd.none
     )
@@ -131,7 +131,7 @@ view model =
 viewChat : Model -> Html.Html Msg
 viewChat model =
     Html.div []
-        [ Html.h2 [] [ Html.text "Echo Chat" ]
+        [ Html.h3 [] [ Html.text "Chat" ]
         , Html.ul []
             (List.map (\msg -> Html.li [] [ Html.text msg ]) model.messages)
         , Html.input
@@ -151,23 +151,27 @@ viewGame model
         [ Html.text <| Uttt.playerToString model.gamestate.turn ++ " to make a move."
         , Html.text <| "Winner: " ++ Uttt.playerToString model.gamestate.winner
         , Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
-        , Html.table [] <| viewBoard model.gamestate
+        , viewBoard model.gamestate
         ]
 
-viewBoard : Uttt.Gamestate -> List (Html.Html Msg)
+viewBoard : Uttt.Gamestate -> Html.Html Msg
 viewBoard gamestate
-    = List.map (\i -> viewRow (Uttt.getRow i gamestate.board) (gamestate.availableMoves)) (List.range 0 8)
+    = Html.div [Attr.class "board"] (List.map (\i-> viewField gamestate (i//3) (modBy 3 i)) (List.range 0 8))
 
-viewRow : Array Uttt.Square -> Array Uttt.Pos -> Html.Html Msg
-viewRow row availableMoves
-    = Html.tr [] (List.map (\sq -> viewSquare sq availableMoves) (Array.toList row))
+viewField : Uttt.Gamestate -> Int -> Int -> Html.Html Msg
+viewField gamestate row col =
+    let
+        field = Uttt.getField (row,col) gamestate.board
+    in
+        Html.div [Attr.class "field"] <| List.map (\sq -> viewSquare sq gamestate.availableMoves) (Array.toList field)
 
 viewSquare : Uttt.Square -> Array Uttt.Pos -> Html.Html Msg
 viewSquare square availableMoves =
-    Html.td
-    [ Attr.classList
-        [ ("square", True)
-        , ("available", Uttt.inArray square.pos availableMoves)
-        ]
-    , Events.onClick <| Send <| Uttt.stringifyPlaceMark square.pos ]
-    [ Html.text <| Uttt.playerToString square.mark ]
+    Html.div
+    [ Attr.class "square-container", Events.onClick <| Send <| Uttt.stringifyPlaceMark square.pos ]
+    [ Html.div [Attr.class "square"] [viewMark <| Uttt.playerToString square.mark]
+    , Html.div [Attr.classList [ ("square", True), ("notAvailable", not <| Uttt.inArray square.pos availableMoves)]] []
+    ]
+
+viewMark : String -> Html.Html Msg
+viewMark mark = Html.div [Attr.class ("marker"++mark++"1")] [Html.div [Attr.class ("marker"++mark++"2")] []]

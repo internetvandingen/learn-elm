@@ -1,10 +1,84 @@
-.square {
-	border:1px solid black;
-	background-color:lightgrey;
-	width:1.5em;
-	height:1.5em;
+:root {
+  --square-witdh: 55px;
+  --square-spacing: 5px;
+  --field-width: calc(3*var(--square-witdh) + 8*var(--square-spacing));
+  --field-spacing: 10px;
+
+  --color-square: lightgrey;
+  --color-square-na: grey;
+
+  --color-markX: blue;
+  --color-markO: red;
 }
 
-.available {
-	background-color:white;
+.board {
+    display: grid;
+    grid-template-columns: var(--field-width) var(--field-width) var(--field-width);
+    padding: var(--field-spacing);
+}
+
+.field {
+    border: 2px solid black;
+    border-radius: 20px;
+    width: calc(3*var(--square-witdh));
+    height: calc(3*var(--square-witdh));
+    display: grid;
+    grid-template-columns: var(--square-witdh) var(--square-witdh) var(--square-witdh);
+    grid-template-rows: var(--square-witdh) var(--square-witdh) var(--square-witdh);
+    padding: var(--square-spacing);
+    margin: var(--field-spacing);
+}
+
+.square-container {
+    position: relative;
+    width: calc(var(--square-witdh)-var(--square-spacing));
+    height: calc(var(--square-witdh)-var(--square-spacing));
+    margin: var(--square-spacing);
+}
+
+.square {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: var(--color-square);
+}
+
+.notAvailable {
+    background-color: black;
+    opacity: 0.4;
+}
+
+.markerX1 {
+    margin: 7px auto;
+    width: 5px;
+    height: 30px;
+    transform: rotate(45deg);
+    background: var(--color-markX);
+}
+.markerX2 {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    background: var(--color-markX);
+}
+
+
+.markerO1 {
+    margin: 7px auto;
+    height: 30px;
+    width: 30px;
+    background-color: var(--color-markO);
+    border-radius: 50%;
+}
+.markerO2 {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    margin: 5px;
+    background-color: var(--color-square);
+    border-radius: 50%;
 }
