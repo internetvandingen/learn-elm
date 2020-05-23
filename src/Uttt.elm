@@ -94,7 +94,7 @@ initGamestate =
 
 initDemoGamestate : Gamestate
 initDemoGamestate =
-    case demoApply (Array.fromList [(4,4), (5,5)]) (Ok initGamestate) of
+    case demoApply (Array.fromList [(4,4), (5,5), (8,8), (7,7), (5,4), (7,4), (3,4), (2,5), (8,7), (8,5), (8,6), (7,1)]) (Ok initGamestate) of
         Ok gamestate -> gamestate
         Err _ -> initGamestate
 
@@ -140,6 +140,9 @@ getWinner board = getWinnerField <| constructSuper board
 
 constructSuper : Board -> Array Square
 constructSuper board = Array.map (\i-> {mark=getWinnerField <| getField (i//3, modBy 3 i) board, pos = (i//3, modBy 3 i)}) (range 9)
+
+isFieldFinished : Array Square -> Bool
+isFieldFinished field = isFieldFull field || ( 0 /= getWinnerField field )
 
 getWinnerField : Array Square -> Int
 getWinnerField field =
@@ -215,14 +218,15 @@ getAvailableMoves lastMove board =
 
         field = getField fieldPos board
     in
-        if ( getWinnerField field == 0 && (not <| isFieldFull field) ) then
-            -- field game unfinished, return all free squares in field
+        if ( isFieldFinished field ) then
+            -- return all free squares in board except in fields that are finished
+            Array.map (\square -> square.pos)
+                <| Array.filter (\square -> not <| isFieldFinished (getField (Tuple.mapBoth (\i->i//3) (\i->i//3) square.pos) board))
+                <| Array.filter (\square -> (square.mark == 0 && (not <| inArray square field))) board
+        else
+            -- return all free squares in field
             Array.map (\square -> square.pos)
                 <| Array.filter (\square -> square.mark == 0) field
-        else
-            -- field game is finished (winner or drawn), return all free squares in board except in that field
-            Array.map (\square -> square.pos)
-                <| Array.filter (\square -> (square.mark == 0 && (not <| inArray square field))) board
 
 isFieldFull : Array Square -> Bool
 isFieldFull field = Array.isEmpty <| Array.filter (\sq -> sq.mark == 0) field

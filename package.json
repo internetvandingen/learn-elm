@@ -5,7 +5,9 @@
   "main": "index.js",
   "watch": {
     "build": {
-      "patterns": ["src"],
+      "patterns": [
+        "src"
+      ],
       "extensions": "elm,html,css"
     }
   },
