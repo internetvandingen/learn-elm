@@ -11,6 +11,44 @@
   --color-markO: red;
 }
 
+.chat {
+    margin: 20px;
+}
+
+.chatMessages {
+    height: 200px;
+    overflow: scroll;
+}
+
+.container {
+    border: 2px solid black;
+    width: calc(3*var(--field-width) + 8*var(--field-spacing));
+}
+
+.alertContainer div div {
+    display: none;
+    position: relative;
+    float: right;
+    margin: 15px;
+    padding: 20px;
+    background-color: #fc463c;
+    border-radius: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 17pt;
+}
+.alertContainer div div:last-child {
+    display: initial;
+}
+
+.status {
+    background-color: var(--color-square);
+    margin: 15px;
+    padding: 20px;
+    border-radius: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 17pt;
+}
+
 .board {
     display: grid;
     grid-template-columns: var(--field-width) var(--field-width) var(--field-width);

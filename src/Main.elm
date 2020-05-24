@@ -7,6 +7,8 @@ import Html.Events as Events
 import Json.Decode as D
 import Array exposing (Array)
 
+import AlertTimerMessage
+
 import Uttt
 
 -- MAIN
@@ -27,6 +29,7 @@ port messageReceiver : (String -> msg) -> Sub msg
 type alias Model =
       { draft : String
       , messages : List String
+      , serverMessage : AlertTimerMessage.Model
       , gamestate : Uttt.Gamestate
       }
 
@@ -35,6 +38,7 @@ init flags =
     (
     { draft = ""
     , messages = []
+    , serverMessage = AlertTimerMessage.modelInit
     , gamestate = Uttt.initDemoGamestate
     }
     , Cmd.none
@@ -45,6 +49,7 @@ type Msg
     = DraftChanged String
     | Send String
     | Recv String
+    | AlertTimer AlertTimerMessage.Msg
 
 -- Use the `sendMessage` port when someone presses ENTER or clicks
 -- the "Send" button. Check out index.html to see the corresponding
@@ -68,11 +73,28 @@ update msg model =
                 parsedMessage = parseMessage message
             in
                 case parsedMessage of
-                    ChatMessage content -> ( { model | messages = model.messages ++ [content] }, Cmd.none )
-                    ServerMessage content -> ( { model | messages = model.messages ++ ["Server: " ++ content] }, Cmd.none )
+                    ServerMessage content ->
+                        let
+                            newMsg =
+                                AlertTimerMessage.AddNewMessage 4 <| Html.div [] [ Html.text content ]
+                            ( updateModel, subCmd ) =
+                                AlertTimerMessage.update newMsg model.serverMessage
+                        in
+                            ( { model | serverMessage = updateModel }
+                            , Cmd.map AlertTimer subCmd
+                            )
+                    ChatMessage content -> ( { model | messages = [content] ++ model.messages }, Cmd.none )
                     UpdateGamestate gamestate -> ( { model | gamestate = gamestate }, Cmd.none )
                     --@todo: log error to console for now, but this should at least indicate to the user that something went wrong
                     Unknown error -> ( model, consoleLog error )
+        AlertTimer message ->
+            let
+                ( updateModel, subCmd ) =
+                    AlertTimerMessage.update message model.serverMessage
+            in
+                ( { model | serverMessage = updateModel }
+                , Cmd.map AlertTimer subCmd
+                )
 
 consoleLog str =
     let
@@ -123,17 +145,19 @@ ifIsEnter msg =
 -- VIEW
 view : Model -> Html.Html Msg
 view model =
-    Html.div []
-        [ viewGame model
+    Html.div [ Attr.class "container"]
+        [ Html.div [Attr.class "alertContainer"] [Html.map AlertTimer (AlertTimerMessage.view model.serverMessage)]
+        , viewGame model
         , viewChat model
         ]
 
 viewChat : Model -> Html.Html Msg
 viewChat model =
-    Html.div []
+    Html.div [ Attr.class "chat" ]
         [ Html.h3 [] [ Html.text "Chat" ]
-        , Html.ul []
-            (List.map (\msg -> Html.li [] [ Html.text msg ]) model.messages)
+        , Html.div
+            [ Attr.class "chatMessages" ]
+            [ Html.ul [] (List.map (\msg -> Html.li [] [ Html.text msg ]) model.messages) ]
         , Html.input
             [ Attr.type_ "text"
             , Attr.placeholder "Draft"
@@ -148,10 +172,16 @@ viewChat model =
 viewGame : Model -> Html.Html Msg
 viewGame model
     = Html.div []
-        [ Html.text <| Uttt.playerToString model.gamestate.turn ++ " to make a move."
+        [ viewStatus model
+        , viewBoard model.gamestate
+        ]
+
+viewStatus : Model -> Html.Html Msg
+viewStatus model =
+    Html.div [ Attr.class "status" ]
+        [ Html.text <| Uttt.playerToString model.gamestate.turn ++ " to move."
         , Html.text <| "Winner: " ++ Uttt.playerToString model.gamestate.winner
         , Html.button [ Events.onClick <| Send Uttt.stringifyUpdateRequest ] [ Html.text "Refresh" ]
-        , viewBoard model.gamestate
         ]
 
 viewBoard : Uttt.Gamestate -> Html.Html Msg
