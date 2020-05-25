@@ -73,20 +73,10 @@ update msg model =
                 parsedMessage = parseMessage message
             in
                 case parsedMessage of
-                    ServerMessage content ->
-                        let
-                            newMsg =
-                                AlertTimerMessage.AddNewMessage 4 <| Html.div [] [ Html.text content ]
-                            ( updateModel, subCmd ) =
-                                AlertTimerMessage.update newMsg model.serverMessage
-                        in
-                            ( { model | serverMessage = updateModel }
-                            , Cmd.map AlertTimer subCmd
-                            )
+                    ServerMessage content -> displayServerMessage model content
                     ChatMessage content -> ( { model | messages = [content] ++ model.messages }, Cmd.none )
                     UpdateGamestate gamestate -> ( { model | gamestate = gamestate }, Cmd.none )
-                    --@todo: log error to console for now, but this should at least indicate to the user that something went wrong
-                    Unknown error -> ( model, consoleLog error )
+                    Unknown error -> displayServerMessage model error
         AlertTimer message ->
             let
                 ( updateModel, subCmd ) =
@@ -96,11 +86,17 @@ update msg model =
                 , Cmd.map AlertTimer subCmd
                 )
 
-consoleLog str =
+displayServerMessage : Model -> String -> (Model, Cmd Msg)
+displayServerMessage model content =
     let
-        test = Debug.log "error" str
+        newMsg =
+            AlertTimerMessage.AddNewMessage 4 <| Html.div [] [ Html.text content ]
+        ( updateModel, subCmd ) =
+            AlertTimerMessage.update newMsg model.serverMessage
     in
-        Cmd.none
+        ( { model | serverMessage = updateModel }
+        , Cmd.map AlertTimer subCmd
+        )
 
 parseMessage : String -> Protocol
 parseMessage json =
