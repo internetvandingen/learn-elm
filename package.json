@@ -18,7 +18,7 @@
     "build:make": "elm make ./src/Main.elm --output=./build/client/elm.js && elm make ./src/Backend.elm --output=./build/backend.js && exit 0",
     "build": "npm run build:copy && npm run build:make",
     "test": "npm run build && elm-test",
-    "prestart": "npm run clean && npm run build && npm run test",
+    "prestart": "npm run clean && npm run test",
     "start": "npm --prefix ./build start"
   },
   "repository": {

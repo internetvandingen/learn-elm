@@ -14,8 +14,17 @@
     font-size: 17pt;
 }
 
+body {
+    margin: 0px;
+}
+
+.container {
+    margin: auto;
+    width: 1000px;
+}
+
 .chat {
-    margin: 20px;
+    margin: 0px 20px;
 }
 
 .chatMessages {
@@ -30,16 +39,12 @@ ul {
     margin: auto;
 }
 
-.container {
-    border: 2px solid black;
-    width: calc(3*var(--field-width) + 8*var(--field-spacing));
-}
-
 .alertContainer div div {
     display: none;
     position: relative;
     float: right;
     margin: 15px;
+    margin-top: 0px;
     padding: 20px;
     background-color: #fc463c;
     border-radius: 10px;
@@ -58,7 +63,9 @@ ul {
 .board {
     display: grid;
     grid-template-columns: var(--field-width) var(--field-width) var(--field-width);
-    padding: var(--field-spacing);
+    grid-template-rows: var(--field-width) var(--field-width) var(--field-width);
+    grid-gap: var(--field-spacing);
+    justify-content: center;
 }
 
 .field {
@@ -70,7 +77,6 @@ ul {
     grid-template-columns: var(--square-witdh) var(--square-witdh) var(--square-witdh);
     grid-template-rows: var(--square-witdh) var(--square-witdh) var(--square-witdh);
     padding: var(--square-spacing);
-    margin: var(--field-spacing);
 }
 
 .square-container {
