@@ -9,6 +9,21 @@ import Uttt
 import Array
 import Json.Decode as D
 
+initTestGamestate : Uttt.Gamestate
+initTestGamestate =
+    case demoApply (Array.fromList [(4,4), (5,5), (8,8), (7,7), (5,4), (7,4), (3,4), (2,5), (8,7), (8,5), (8,6), (7,1)]) (Ok Uttt.initGamestate) of
+        Ok gamestate -> gamestate
+        Err _ -> Uttt.initGamestate
+
+demoApply : Array.Array Uttt.Pos -> Result String Uttt.Gamestate -> Result String Uttt.Gamestate
+demoApply arrPos result =
+    case result of
+        Err error -> Err error
+        Ok gamestate ->
+            case Array.get 0 arrPos of
+                Nothing -> Ok gamestate
+                Just pos -> demoApply (Array.slice 1 (Array.length arrPos) arrPos) (Uttt.parsePlaceMark gamestate.turn pos gamestate)
+
 suite : Test
 suite =
     describe "Exposed functions of Uttt module"
@@ -80,5 +95,7 @@ suite =
                             Err _ -> Expect.fail "Something went wrong while setting up for this test"
             , test "invalid square selected" <|
                 \_ -> Uttt.parsePlaceMark 1 (9,0) Uttt.initGamestate |> Expect.equal (Err "Invalid move")
+            , test "available moves" <|
+                \_ -> Array.length initTestGamestate.availableMoves |> Expect.equal 59
             ]
         ]

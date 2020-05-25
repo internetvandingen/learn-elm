@@ -5,7 +5,7 @@ import Html
 import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Decode as D
-import Array exposing (Array)
+import Array
 
 import AlertTimerMessage
 
@@ -39,7 +39,7 @@ init flags =
     { draft = ""
     , messages = []
     , serverMessage = AlertTimerMessage.modelInit
-    , gamestate = Uttt.initDemoGamestate
+    , gamestate = Uttt.initGamestate
     }
     , Cmd.none
     )
@@ -195,7 +195,7 @@ viewField gamestate row col =
     in
         Html.div [Attr.class "field"] <| List.map (\sq -> viewSquare sq gamestate.availableMoves) (Array.toList field)
 
-viewSquare : Uttt.Square -> Array Uttt.Pos -> Html.Html Msg
+viewSquare : Uttt.Square -> Array.Array Uttt.Pos -> Html.Html Msg
 viewSquare square availableMoves =
     Html.div
     [ Attr.class "square-container", Events.onClick <| Send <| Uttt.stringifyPlaceMark square.pos ]

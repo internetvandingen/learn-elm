@@ -3,11 +3,9 @@ module Uttt exposing (
     , Square
     , Pos
     , initGamestate
-    , initDemoGamestate
     , parsePlaceMark
     , playerToString
     , inArray
-    , getRow
     , getField
     , stringifyGamestate
     , stringifyChatMessage
@@ -16,8 +14,6 @@ module Uttt exposing (
     , stringifyPlaceMark
     , decodeGamestate
     , decodePos)
-
---@todo: remove: getRow getField, initDemoGamestate
 
 import Json.Encode as E
 import Json.Decode as D
@@ -70,9 +66,6 @@ inArray : a -> Array a -> Bool
 inArray needle arr =
     1 == Array.length (Array.filter (\x -> x == needle) arr)
 
-getRow : Int -> Array a -> Array a
-getRow rowN arr = Array.slice (rowN*9) ((rowN+1)*9) arr
-
 ------------------------------------------------------------------ INITIALIZE
 
 initSquare : Pos -> Square
@@ -91,21 +84,6 @@ initGamestate =
     , availableMoves = Array.map (\index -> indexToPos index) (range 81)
     , winner = 0
     }
-
-initDemoGamestate : Gamestate
-initDemoGamestate =
-    case demoApply (Array.fromList [(4,4), (5,5), (8,8), (7,7), (5,4), (7,4), (3,4), (2,5), (8,7), (8,5), (8,6), (7,1)]) (Ok initGamestate) of
-        Ok gamestate -> gamestate
-        Err _ -> initGamestate
-
-demoApply : Array Pos -> Result String Gamestate -> Result String Gamestate
-demoApply arrPos result =
-    case result of
-        Err error -> Err error
-        Ok gamestate ->
-            case Array.get 0 arrPos of
-                Nothing -> Ok gamestate
-                Just pos -> demoApply (slice 1 (Array.length arrPos) arrPos) (parsePlaceMark gamestate.turn pos gamestate)
 
 ------------------------------------------------------------------ GAMELOGIC
 
