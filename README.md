@@ -66,7 +66,9 @@ Voor verdere planning, zie trello
 - is elm enige architectuur om dit op te lossen? ->
 	Main stream platformem : Vue + Vuex. React met Redux. 
 	Obscuurdere platformen: purescript, ocaml->reasonml (, cyclejs)
-- wat zijn restricties van elm? -> nieuwe functionaliteiten kunnen beperkt gebouwd worden
+- wat zijn restricties van elm? ->
+	nieuwe functionaliteiten kunnen beperkt gebouwd worden
+	beschikbare packages zijn gelimiteerd, selecte groep van mensen kan packages maken
 
 
 # Documentation
@@ -112,6 +114,8 @@ Note that both the client and the backend are written in elm, so the code for th
 
 ## Dependencies
 - [elm](https://elm-lang.org)
+	- elm-explorations/test: 1.2.2
+	- Bernardoow/elm-alert-timer-message: 1.0.1
 - node
 	- websocket
 	- http
